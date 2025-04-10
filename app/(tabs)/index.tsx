@@ -1,74 +1,164 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Dimensions,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { useWords } from "../context/globalContext";
+import { toast } from "sonner-native";
+interface WordItem {
+  word: string;
+  definition: string;
+  tags: Array<string>;
+  id: number;
+}
+export default function Home() {
+  const [renderType, setRenderType] = useState("dateAsc");
+  const { words, setWords, displayedWords, setDisplayedWords } = useWords();
+  const [visibleDefinitions, setVisibleDefinitions] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [noResults, setNoResults] = useState(false);
+  const uniqueTags = Array.from(
+    new Set(words.flatMap((word) => word.tags.map((tag) => tag.toLowerCase())))
+  );
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       entries.forEach((entry) => {
+  //         if (entry.isIntersecting) {
+  //           const index = cardRefs.current.findIndex(
+  //             (ref) => ref === entry.target
+  //           );
+  //           if (index !== -1) {
+  //             setCurrentIndex(index);
+  //             const currentWordId = displayedWords[index]?.id;
+  //             if (currentWordId) {
+  //               const url = new URL(window.location.href);
+  //               url.searchParams.set("wordId", String(currentWordId));
+  //               window.history.replaceState(null, "", url.toString());
+  //             }
+  //           }
+  //         }
+  //       });
+  //     },
+  //     { threshold: 0.5 }
+  //   );
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+  //   cardRefs.current.forEach((ref) => {
+  //     if (ref) observer.observe(ref);
+  //   });
 
-export default function HomeScreen() {
+  //   return () => observer.disconnect();
+  // }, [displayedWords]);
+  const scrollToWord = (wordId: number) => {
+    const index = words.findIndex((word) => word.id === wordId);
+
+    if (index !== -1 && cardRefs.current[index]) {
+      cardRefs.current[index].scrollIntoView({ behavior: "smooth" });
+      setCurrentIndex(index);
+    }
+  };
+  useEffect(() => {
+    async function loadSavedWords() {
+      const storedWords = await AsyncStorage.getItem("words");
+      if (storedWords) {
+        const parsedWords = JSON.parse(storedWords).map(
+          (word: WordItem, index: number) => ({
+            word: word.word,
+            definition: word.definition,
+            tags: word.tags,
+            id: word.id,
+            index,
+          })
+        );
+        setWords(parsedWords);
+        setDisplayedWords(parsedWords);
+      }
+    }
+    loadSavedWords();
+  }, [setWords, setDisplayedWords]);
+  useEffect(() => {
+    // // const params = new URLSearchParams(window.location.search);
+    // const wordIndexParam = params.get("wordId");
+    // scrollToWord(Number(wordIndexParam));
+  }, [words]);
+  const toggleDefinition = (index: number) => {
+    setVisibleDefinitions((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+  const deleteWord = (id: number) => {
+    if (words.length === 0) {
+      toast.error("There's nothing to delete! 🚫");
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
+    const updatedWords = words.filter((word) => word.id !== id);
+    setWords(updatedWords);
+    setDisplayedWords(updatedWords);
+    AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+
+    toast.error("Poof! That word just vanished into the void. 🚀");
+    setIsDeleteDialogOpen(false);
+  };
+  const shuffleArray = (arr: Array<WordItem>) => {
+    return [...arr].sort(() => Math.random() - 0.5);
+  };
+  const handleSearch = () => {
+    if (searchQuery.trim() === "") {
+      setDisplayedWords(words);
+      setNoResults(false);
+      return;
+    }
+    const searchTags = searchQuery
+      .split(",")
+      .map((tag) => tag.trim().toLowerCase())
+      .filter((tag) => tag !== "");
+
+    const filteredWords =
+      searchQuery.trim() === ""
+        ? words
+        : words.filter((word) =>
+            word.tags.some((tag) => searchTags.includes(tag.toLowerCase()))
+          );
+
+    setDisplayedWords(filteredWords);
+    setNoResults(filteredWords.length === 0);
+  };
+  const handleSearchReset = () => {
+    setDisplayedWords(words);
+  };
+  useEffect(() => {
+    setDisplayedWords(
+      renderType === "random"
+        ? shuffleArray(words)
+        : renderType === "dateAsc"
+        ? words
+        : renderType === "dateDes"
+        ? [...words].reverse()
+        : words
+    );
+  }, [renderType, words, setDisplayedWords]);
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View className="w-full h-screen">
+      <View className="justify-center pt-1 border-b border-[#ccc] absolute top-0 w-full px-6 h-20">
+        <Text className="text-3xl font-bold">Flash</Text>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
