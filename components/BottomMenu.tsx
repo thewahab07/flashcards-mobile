@@ -50,7 +50,7 @@ export default function BottomMenu() {
 
       <View className="justify-center items-center">
         <TouchableOpacity
-          //onPress={() => router.push("/settings")}
+          onPress={() => router.push("./settings")}
           className="px-2 justify-center items-center"
         >
           <Settings size={28} color="black" />

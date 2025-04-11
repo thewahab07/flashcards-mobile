@@ -10,12 +10,14 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import "./global.css";
-import 'nativewind';
+import "nativewind";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { WordsProvider } from "./context/globalContext";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomMenu from "@/components/BottomMenu";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -42,11 +44,11 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <SafeAreaView className="flex-1">
+            <Stack screenOptions={{ headerShown: false }} />
+          </SafeAreaView>
           <StatusBar style="auto" />
+          <BottomMenu />
           <Toaster position="bottom-center" richColors />
         </ThemeProvider>
       </GestureHandlerRootView>
