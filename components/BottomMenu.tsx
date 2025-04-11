@@ -6,10 +6,10 @@ import { HomeIcon, Plus, Settings } from "lucide-react-native";
 
 export default function BottomMenu() {
   const { addWord } = useWords();
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const router = useRouter();
 
@@ -28,7 +28,7 @@ export default function BottomMenu() {
   };
 
   return (
-    <View className="flex-row justify-around pt-1 border-t border-[#ccc] absolute bottom-0 w-full">
+    <View className="flex-row justify-around pt-1 bg-gray-100/90 border-t border-[#ccc] absolute bottom-0 w-full">
       <View className="justify-center items-center">
         <TouchableOpacity
           onPress={() => router.push("/")}

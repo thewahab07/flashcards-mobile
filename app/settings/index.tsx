@@ -23,7 +23,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="w-full border-none shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full border-y border-[#ccc] shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
           onPress={() => {
             router.push("/settings/import-export");
           }}

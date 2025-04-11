@@ -8,71 +8,34 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  Touchable,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
 import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
+import {
+  Pressable,
+  TouchableWithoutFeedback,
+} from "react-native-gesture-handler";
+import { Delete, Trash } from "lucide-react-native";
 interface WordItem {
   word: string;
   definition: string;
   tags: Array<string>;
   id: number;
 }
+const { height } = Dimensions.get("window");
 export default function Home() {
-  const [renderType, setRenderType] = useState("dateAsc");
   const { words, setWords, displayedWords, setDisplayedWords } = useWords();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [noResults, setNoResults] = useState(false);
-  const uniqueTags = Array.from(
-    new Set(words.flatMap((word) => word.tags.map((tag) => tag.toLowerCase())))
-  );
-  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  // useEffect(() => {
-  //   const observer = new IntersectionObserver(
-  //     (entries) => {
-  //       entries.forEach((entry) => {
-  //         if (entry.isIntersecting) {
-  //           const index = cardRefs.current.findIndex(
-  //             (ref) => ref === entry.target
-  //           );
-  //           if (index !== -1) {
-  //             setCurrentIndex(index);
-  //             const currentWordId = displayedWords[index]?.id;
-  //             if (currentWordId) {
-  //               const url = new URL(window.location.href);
-  //               url.searchParams.set("wordId", String(currentWordId));
-  //               window.history.replaceState(null, "", url.toString());
-  //             }
-  //           }
-  //         }
-  //       });
-  //     },
-  //     { threshold: 0.5 }
-  //   );
 
-  //   cardRefs.current.forEach((ref) => {
-  //     if (ref) observer.observe(ref);
-  //   });
-
-  //   return () => observer.disconnect();
-  // }, [displayedWords]);
-  const scrollToWord = (wordId: number) => {
-    const index = words.findIndex((word) => word.id === wordId);
-
-    if (index !== -1 && cardRefs.current[index]) {
-      cardRefs.current[index].scrollIntoView({ behavior: "smooth" });
-      setCurrentIndex(index);
-    }
-  };
   useEffect(() => {
-    async function loadSavedWords() {
+    const loadWords = async () => {
       const storedWords = await AsyncStorage.getItem("words");
       if (storedWords) {
         const parsedWords = JSON.parse(storedWords).map(
@@ -87,14 +50,10 @@ export default function Home() {
         setWords(parsedWords);
         setDisplayedWords(parsedWords);
       }
-    }
-    loadSavedWords();
-  }, [setWords, setDisplayedWords]);
-  useEffect(() => {
-    // // const params = new URLSearchParams(window.location.search);
-    // const wordIndexParam = params.get("wordId");
-    // scrollToWord(Number(wordIndexParam));
-  }, [words]);
+    };
+    loadWords();
+  }, []);
+
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
       ...prev,
@@ -116,49 +75,111 @@ export default function Home() {
     toast.error("Poof! That word just vanished into the void. 🚀");
     setIsDeleteDialogOpen(false);
   };
-  const shuffleArray = (arr: Array<WordItem>) => {
-    return [...arr].sort(() => Math.random() - 0.5);
-  };
-  const handleSearch = () => {
-    if (searchQuery.trim() === "") {
-      setDisplayedWords(words);
-      setNoResults(false);
-      return;
-    }
-    const searchTags = searchQuery
-      .split(",")
-      .map((tag) => tag.trim().toLowerCase())
-      .filter((tag) => tag !== "");
-
-    const filteredWords =
-      searchQuery.trim() === ""
-        ? words
-        : words.filter((word) =>
-            word.tags.some((tag) => searchTags.includes(tag.toLowerCase()))
-          );
-
-    setDisplayedWords(filteredWords);
-    setNoResults(filteredWords.length === 0);
-  };
-  const handleSearchReset = () => {
-    setDisplayedWords(words);
-  };
-  useEffect(() => {
-    setDisplayedWords(
-      renderType === "random"
-        ? shuffleArray(words)
-        : renderType === "dateAsc"
-        ? words
-        : renderType === "dateDes"
-        ? [...words].reverse()
-        : words
-    );
-  }, [renderType, words, setDisplayedWords]);
   return (
     <View className="w-full h-screen">
-      <View className="justify-center pt-1 border-b border-[#ccc] absolute top-0 w-full px-6 h-20">
+      {words.length == 0 ? (
+        <View className="h-full w-full p-4 flex justify-center items-center">
+          <Text className="text-2xl text-gray-500">
+            The void is empty... for now. Add some words to bring it to life! ✨
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: 0 }}
+          className="w-full h-full"
+          onMomentumScrollEnd={(event) => {
+            const offsetY = event.nativeEvent.contentOffset.y;
+            const index = Math.round(offsetY / height); // height is already defined from Dimensions
+            setCurrentIndex(index);
+          }}
+        >
+          {displayedWords.map((item, id) => (
+            <View
+              key={id}
+              style={{ height: height }}
+              className="items-center justify-center px-4"
+            >
+              <View className="border-2 rounded-lg border-[#b1b1b1] h-[70%] w-[80%] items-center justify-center">
+                <TouchableOpacity
+                  activeOpacity={1}
+                  className="w-full h-full items-center justify-center"
+                  onPress={() => {
+                    toggleDefinition(id);
+                  }}
+                >
+                  {visibleDefinitions[id] ? (
+                    <View className="items-center justify-center w-full">
+                      <Text className="text-3xl text-gray-500">
+                        {item.definition}
+                      </Text>
+                      <View className="flex-row justify-center items-center">
+                        {item.tags.map((tags, num) => (
+                          <Text
+                            key={num}
+                            className="border border-[#ccc] my-2 mx-1 px-2 py-1 rounded-xl"
+                          >
+                            {tags}
+                          </Text>
+                        ))}
+                      </View>
+                    </View>
+                  ) : (
+                    <Text className="text-5xl font-bold">{item.word}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      <View className="h-full w-[14%] absolute right-0  pt-36 items-center">
+        <Trash
+          onPress={() => {
+            setIsDeleteDialogOpen(true);
+          }}
+          size={32}
+          color={"black"}
+        />
+      </View>
+      <View className="justify-center pt-1 bg-gray-100/90 border-b border-[#ccc] absolute top-0 w-full px-6 h-20">
         <Text className="text-3xl font-bold">Flash</Text>
       </View>
+      <Modal
+        visible={isDeleteDialogOpen}
+        animationType="fade"
+        transparent={true}
+      >
+        <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
+          <View className="bg-white w-[90%] self-center rounded-lg border border-borderColor p-6">
+            <Text className="text-xl font-bold text-black dark:text-white mb-1">
+              Are you sure?
+            </Text>
+            <Text className="text-base text-gray-600 dark:text-gray-300 mb-6">
+              Do you really want to delete this word?
+            </Text>
+            <View className="flex-row justify-end">
+              <TouchableOpacity
+                className="px-4 mx-1 py-2 border border-borderColor rounded-md dark:bg-backgroundDark"
+                onPress={() => setIsDeleteDialogOpen(false)}
+              >
+                <Text className="text-black dark:text-white font-medium">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-4 mx-1 py-2 bg-red-600 rounded-md"
+                onPress={() => {
+                  deleteWord(displayedWords[currentIndex]?.id);
+                }}
+              >
+                <Text className="text-white font-medium">Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
