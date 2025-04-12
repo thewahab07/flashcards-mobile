@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "sonner-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { Platform, Alert, ToastAndroid } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 
 interface Word {
   word: string;
@@ -20,7 +24,7 @@ interface WordsContextType {
   isSystem: boolean;
   setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
   exportWords: () => void;
-  importWords: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  importWords: () => void;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
@@ -40,41 +44,41 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
     }
     loadSavedWords();
   }, []);
-//   useEffect(() => {
-//     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+  //   useEffect(() => {
+  //     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 
-//     const applyTheme = async () => {
-//       const storedTheme = await AsyncStorage.getItem("theme");
+  //     const applyTheme = async () => {
+  //       const storedTheme = await AsyncStorage.getItem("theme");
 
-//       if (storedTheme === "dark") {
-//         document.documentElement.classList.add("dark");
-//         setIsDarkMode(true);
-//         setIsSystem(false);
-//       } else if (storedTheme === "light") {
-//         document.documentElement.classList.remove("dark");
-//         setIsDarkMode(false);
-//         setIsSystem(false);
-//       } else {
-//         const isSystemDark = systemPrefersDark.matches;
-//         document.documentElement.classList.toggle("dark", isSystemDark);
-//         setIsDarkMode(isSystemDark);
-//         setIsSystem(true);
-//       }
-//     };
-//     applyTheme();
-//     const systemThemeChangeHandler = (e: MediaQueryListEvent) => {
-//       if (isSystem) {
-//         document.documentElement.classList.toggle("dark", e.matches);
-//         setIsDarkMode(e.matches);
-//       }
-//     };
+  //       if (storedTheme === "dark") {
+  //         document.documentElement.classList.add("dark");
+  //         setIsDarkMode(true);
+  //         setIsSystem(false);
+  //       } else if (storedTheme === "light") {
+  //         document.documentElement.classList.remove("dark");
+  //         setIsDarkMode(false);
+  //         setIsSystem(false);
+  //       } else {
+  //         const isSystemDark = systemPrefersDark.matches;
+  //         document.documentElement.classList.toggle("dark", isSystemDark);
+  //         setIsDarkMode(isSystemDark);
+  //         setIsSystem(true);
+  //       }
+  //     };
+  //     applyTheme();
+  //     const systemThemeChangeHandler = (e: MediaQueryListEvent) => {
+  //       if (isSystem) {
+  //         document.documentElement.classList.toggle("dark", e.matches);
+  //         setIsDarkMode(e.matches);
+  //       }
+  //     };
 
-//     systemPrefersDark.addEventListener("change", systemThemeChangeHandler);
+  //     systemPrefersDark.addEventListener("change", systemThemeChangeHandler);
 
-//     return () => {
-//       systemPrefersDark.removeEventListener("change", systemThemeChangeHandler);
-//     };
-//   }, [isSystem]);
+  //     return () => {
+  //       systemPrefersDark.removeEventListener("change", systemThemeChangeHandler);
+  //     };
+  //   }, [isSystem]);
   const addWord = (
     newWord: string,
     newDefinition: string,
@@ -97,78 +101,85 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
       toast.success("Another word enters the Hall of Knowledge! 🏛️");
     }
   };
-  const exportWords = () => {
-    if (words.length === 0) {
-      toast.error("No words to export! 📭");
-      return;
-    }
-    const importedWords = words.map((word) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, ...rest } = word;
-      return rest;
-    });
-    const dataStr = JSON.stringify(importedWords, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "words.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("Your words have been exported successfully! 📁");
-  };
-
-  const importWords = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedWords: Word[] = JSON.parse(e.target?.result as string);
-        const updatedWords = [...words];
-
-        importedWords.forEach((importedWord) => {
-          const { word, definition, tags = [] } = importedWord;
-          const existingWordIndex = updatedWords.findIndex(
-            (w) => w.word === word
-          );
-
-          if (existingWordIndex !== -1) {
-            const existingWord = updatedWords[existingWordIndex];
-            const mergedTags = Array.from(
-              new Set([...existingWord.tags, ...tags])
-            );
-
-            updatedWords[existingWordIndex] = {
-              ...existingWord,
-              tags: mergedTags,
-            };
-          } else {
-            updatedWords.push({
-              word,
-              definition,
-              tags: tags || [],
-              id: Math.random(),
-            });
-          }
-        });
-
-        setWords(updatedWords);
-        setDisplayedWords(updatedWords);
-        AsyncStorage.setItem("words", JSON.stringify(updatedWords));
-
-        toast.success("Words imported successfully with new IDs! 📥");
-      } catch {
-        toast.error("Invalid JSON file format! ❌");
+  const exportWords = async () => {
+    try {
+      const filteredWords = words.map(({ id, ...rest }) => rest);
+      const json = JSON.stringify(filteredWords, null, 2);
+      const fileUri = FileSystem.documentDirectory + "words.json";
+      await FileSystem.writeAsStringAsync(fileUri, json, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      await Sharing.shareAsync(fileUri);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Exported successfully! 📁", ToastAndroid.SHORT);
+      } else {
+        Alert.alert(
+          "Exported!",
+          "Your words have been exported successfully 📁"
+        );
       }
-    };
-
-    reader.readAsText(file);
+    } catch (error) {
+      console.error("Export failed:", error);
+      Alert.alert("Error", "Failed to export words.");
+    }
   };
+  const importWords = async () => {
+    try {
+      // Pick file
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+        copyToCacheDirectory: true,
+      });
 
+      if (result.canceled) return;
+
+      // Access the file info from result.assets[0]
+      const file = result.assets[0];
+
+      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+
+      let importedWords;
+      try {
+        importedWords = JSON.parse(fileContent);
+      } catch {
+        Alert.alert("Error", "Invalid JSON format! ❌");
+        return;
+      }
+
+      const updatedWords = [...words];
+
+      importedWords.forEach((importedWord: Word) => {
+        const { word, definition, tags = [] } = importedWord;
+        const existingIndex = updatedWords.findIndex((w) => w.word === word);
+
+        if (existingIndex !== -1) {
+          const existingWord = updatedWords[existingIndex];
+          const mergedTags = Array.from(
+            new Set([...existingWord.tags, ...tags])
+          );
+          updatedWords[existingIndex] = { ...existingWord, tags: mergedTags };
+        } else {
+          updatedWords.push({
+            word,
+            definition,
+            tags,
+            id: Math.random(), // Generate new ID
+          });
+        }
+      });
+
+      setWords(updatedWords);
+      setDisplayedWords(updatedWords);
+      await AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+
+      Platform.OS === "android"
+        ? ToastAndroid.show("Imported successfully! 📥", ToastAndroid.SHORT)
+        : Alert.alert("Success", "Words imported! 📥");
+    } catch (error) {
+      console.error("Import failed:", error);
+      Alert.alert("Error", "Failed to import words.");
+    }
+  };
   return (
     <WordsContext.Provider
       value={{
