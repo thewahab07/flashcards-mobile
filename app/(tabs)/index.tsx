@@ -1,32 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   TextInput,
-  StyleSheet,
   Dimensions,
-  Alert,
-  Touchable,
   Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
-import {
-  Pressable,
-  TouchableWithoutFeedback,
-} from "react-native-gesture-handler";
-import {
-  Check,
-  Delete,
-  Filter,
-  Search,
-  SearchX,
-  SortAsc,
-  Trash,
-} from "lucide-react-native";
+import { Check, Filter, SearchX, SortAsc, Trash } from "lucide-react-native";
+import * as Notifications from "expo-notifications";
 interface WordItem {
   word: string;
   definition: string;
@@ -34,8 +20,21 @@ interface WordItem {
   id: number;
 }
 const { height } = Dimensions.get("window");
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: true,
+  }),
+});
 export default function Home() {
-  const { words, setWords, displayedWords, setDisplayedWords } = useWords();
+  const {
+    words,
+    setWords,
+    displayedWords,
+    setDisplayedWords,
+    notificationTime,
+  } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -46,11 +45,45 @@ export default function Home() {
   const uniqueTags = Array.from(
     new Set(words.flatMap((word) => word.tags.map((tag) => tag.toLowerCase())))
   );
-
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
+  const startRepeatingNotifications = async () => {
+    if (displayedWords.length === 0) return;
+    let time = Number(notificationTime) * 60;
 
+    // const randomIndex = Math.floor(Math.random() * displayedWords.length);
+    // const randomWord = displayedWords[randomIndex];
+
+    await Notifications.cancelAllScheduledNotificationsAsync(); // avoid duplicates
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "📚 Flashcard Time!",
+        body: `Do you remember ${displayedWords[Math.floor(Math.random() * displayedWords.length)].word}?`,
+      },
+      trigger: {
+        type: "timeInterval",
+        seconds: time,
+        repeats: true,
+      } as unknown as Notifications.NotificationTriggerInput,
+    });
+  };
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== "granted") {
+        const { status: newStatus } =
+          await Notifications.requestPermissionsAsync();
+        if (newStatus !== "granted") {
+          alert("🚫 Notifications permission not granted!");
+          return;
+        }
+      }
+      alert("Granted.");
+      startRepeatingNotifications();
+    })();
+  }, [displayedWords]);
   useEffect(() => {
     const loadWords = async () => {
       const storedWords = await AsyncStorage.getItem("words");
