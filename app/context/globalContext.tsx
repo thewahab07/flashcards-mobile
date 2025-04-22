@@ -3,7 +3,7 @@ import { toast } from "sonner-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Platform, Alert, ToastAndroid } from "react-native";
+import { Platform, Alert, ToastAndroid, Appearance } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 
 interface Word {
@@ -12,6 +12,16 @@ interface Word {
   tags: string[];
   id: number;
 }
+type ThemeOption = "light" | "dark" | "system";
+
+interface ThemeContextType {
+  isDarkMode: boolean;
+  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  isSystem: boolean;
+  setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
+  setThemeMode: (mode: ThemeOption) => void;
+  themeMode: ThemeOption;
+}
 
 interface WordsContextType {
   words: Word[];
@@ -19,14 +29,16 @@ interface WordsContextType {
   displayedWords: Word[];
   setDisplayedWords: React.Dispatch<React.SetStateAction<Word[]>>;
   addWord: (word: string, definition: string, tags: string[]) => void;
-  isDarkMode: boolean;
-  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
-  isSystem: boolean;
-  setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
   exportWords: () => void;
   importWords: () => void;
   notificationPermission: boolean;
   setNotificationPermission: React.Dispatch<React.SetStateAction<boolean>>;
+  isDarkMode: boolean;
+  setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  isSystem: boolean;
+  setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
+  setThemeMode: (mode: ThemeOption) => void;
+  themeMode: ThemeOption;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
@@ -34,7 +46,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [words, setWords] = useState<Word[]>([]);
   const [displayedWords, setDisplayedWords] = useState<Word[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSystem, setIsSystem] = useState(false);
+  const [isSystem, setIsSystem] = useState(true);
+  const [themeMode, setThemeMode] = useState<ThemeOption>("system");
   const [notificationPermission, setNotificationPermission] = useState(false);
 
   useEffect(() => {
@@ -47,6 +60,56 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
     }
     loadSavedWords();
   }, []);
+  useEffect(() => {
+    const initTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem("theme");
+      const systemPrefersDark = Appearance.getColorScheme() === "dark";
+
+      if (storedTheme === "dark") {
+        setIsDarkMode(true);
+        setIsSystem(false);
+        setThemeMode("dark");
+      } else if (storedTheme === "light") {
+        setIsDarkMode(false);
+        setIsSystem(false);
+        setThemeMode("light");
+      } else {
+        setIsSystem(true);
+        setIsDarkMode(systemPrefersDark);
+        setThemeMode("system");
+      }
+    };
+
+    initTheme();
+
+    const listener = Appearance.addChangeListener(({ colorScheme }) => {
+      if (isSystem) {
+        setIsDarkMode(colorScheme === "dark");
+      }
+    });
+
+    return () => listener.remove();
+  }, [isSystem]);
+
+  const updateTheme = async (mode: ThemeOption) => {
+    if (mode === "dark") {
+      setIsDarkMode(true);
+      setIsSystem(false);
+      setThemeMode("dark");
+      await AsyncStorage.setItem("theme", "dark");
+    } else if (mode === "light") {
+      setIsDarkMode(false);
+      setIsSystem(false);
+      setThemeMode("light");
+      await AsyncStorage.setItem("theme", "light");
+    } else {
+      setIsSystem(true);
+      const systemPrefersDark = Appearance.getColorScheme() === "dark";
+      setIsDarkMode(systemPrefersDark);
+      setThemeMode("system");
+      await AsyncStorage.removeItem("theme");
+    }
+  };
   //   useEffect(() => {
   //     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -199,6 +262,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         importWords,
         notificationPermission,
         setNotificationPermission,
+        setThemeMode: updateTheme,
+        themeMode,
       }}
     >
       {children}

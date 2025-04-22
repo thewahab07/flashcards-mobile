@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 export default function TabLayout() {
   return (
-    <View>
+    <View className="dark:bg-backgroundDark dark:text-white bg-background text-black">
       <Slot />
     </View>
   );
