@@ -25,7 +25,8 @@ interface WordsContextType {
   setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
   exportWords: () => void;
   importWords: () => void;
-  notificationTime: Number;
+  notificationPermission: boolean;
+  setNotificationPermission: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
@@ -34,7 +35,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [displayedWords, setDisplayedWords] = useState<Word[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSystem, setIsSystem] = useState(false);
-  const [notificationTime, setNotificationTime] = useState(1);
+  const [notificationPermission, setNotificationPermission] = useState(false);
 
   useEffect(() => {
     async function loadSavedWords() {
@@ -196,7 +197,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         setIsSystem,
         exportWords,
         importWords,
-        notificationTime,
+        notificationPermission,
+        setNotificationPermission,
       }}
     >
       {children}
