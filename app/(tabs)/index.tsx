@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
 import { Check, Filter, SearchX, SortAsc, Trash } from "lucide-react-native";
 import * as Notifications from "expo-notifications";
+import { RelativePathString, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 interface WordItem {
   word: string;
   definition: string;
@@ -50,6 +52,8 @@ export default function Home() {
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
+  const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     const loadWords = async () => {
@@ -70,52 +74,10 @@ export default function Home() {
     };
     loadWords();
   }, []);
-  // useEffect(() => {
-  //   const setupNotifications = async () => {
-  //     const { status } = await Notifications.requestPermissionsAsync();
-  //     if (status !== "granted") {
-  //       alert("Notification permissions not granted");
-  //       return;
-  //     }
-
-  //     await Notifications.cancelAllScheduledNotificationsAsync(); // Optional: prevent duplicates
-
-  //     if (words.length === 0) return;
-  //     alert("Notification permissions granted");
-
-  //     const shuffled = shuffleArray(words);
-  //     const now = new Date();
-  //     console.log("Scheduling notifications for selected words...");
-
-  //     for (let i = 0; i < 5; i++) {
-  //       const triggerTime = new Date(now.getTime() + i * 60 * 1000); // every minute
-  //       console.log(triggerTime);
-  //       console.log(shuffled[i % shuffled.length].word);
-  //       await Notifications.scheduleNotificationAsync({
-  //         content: {
-  //           title: "Flash Word",
-  //           body: `${shuffled[i % shuffled.length].word} - ${
-  //             shuffled[i % shuffled.length].definition
-  //           }`,
-  //           sound: true,
-  //           priority: Notifications.AndroidNotificationPriority.HIGH,
-  //         },
-  //         trigger: {
-  //           type: "date",
-  //           date: new Date(Date.now() + i * 60 * 1000),
-  //           allowWhileIdle: true,
-  //         } as unknown as Notifications.NotificationTriggerInput,
-  //       });
-  //     }
-  //   };
-
-  //   setupNotifications();
-  // }, [words]);
   useEffect(() => {
     const setupNotifications = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
-        alert("Notification permissions not granted");
         setNotificationPermission(false);
         return;
       }
@@ -123,7 +85,6 @@ export default function Home() {
       await Notifications.cancelAllScheduledNotificationsAsync(); // Prevent duplicates
       setNotificationPermission(true);
       if (words.length === 0 && notificationPermission == false) return;
-      alert("Notification permissions granted");
 
       const shuffled = shuffleArray(words); // Shuffle the words for randomness
       const now = new Date();
@@ -133,12 +94,12 @@ export default function Home() {
       const startOfDay = new Date(localTime.setHours(9, 0, 0, 0)); // 9:00 AM local time
       const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
 
-      console.log("Scheduling notifications for selected words...");
+      // console.log("Scheduling notifications for selected words...");
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 18; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 40 * 60 * 1000);
+      for (let i = 0; i < 720; i++) {
+        const triggerTime = new Date(startOfDay.getTime() + i * 1 * 60 * 1000);
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -147,7 +108,7 @@ export default function Home() {
       // Loop through the fixed times and schedule notifications
       for (let i = 0; i < fixedTimes.length; i++) {
         const triggerTime = fixedTimes[i];
-        console.log(triggerTime);
+        // console.log(triggerTime);
 
         // Ensure we have a word to schedule
         const wordIndex = i % shuffled.length; // Get word based on fixed time
@@ -156,7 +117,7 @@ export default function Home() {
         // If there is no word, continue to the next fixed time
         if (!word) continue;
 
-        console.log(word.word); // Logging the word to be sent in the notification
+        // console.log(word.word); // Logging the word to be sent in the notification
 
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -164,6 +125,9 @@ export default function Home() {
             body: `Do you remember ${word.word}?`,
             sound: true,
             priority: Notifications.AndroidNotificationPriority.HIGH,
+            data: {
+              wordId: word.id, // include the ID
+            },
           },
           trigger: {
             type: "date",
@@ -176,6 +140,37 @@ export default function Home() {
 
     setupNotifications();
   }, [words]); // Re-run when the words list changes (e.g., words are deleted)
+
+  const scrollToWord = (wordId: number) => {
+    const index = displayedWords.findIndex((w) => w.id === wordId);
+    if (index !== -1 && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: index * height,
+        animated: true,
+      });
+      setCurrentIndex(index);
+    }
+  };
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const wordId = response.notification.request.content.data.wordId;
+        if (wordId !== undefined) {
+          router.push(`/?wordId=${wordId}` as RelativePathString);
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
+  const { wordId } = useLocalSearchParams();
+  useEffect(() => {
+    if (wordId) {
+      scrollToWord(Number(wordId));
+      console.log("Word ID from URL:", wordId);
+    }
+    console.log("hahahah");
+  }, [wordId]);
 
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
@@ -242,6 +237,7 @@ export default function Home() {
         </View>
       ) : (
         <ScrollView
+          ref={scrollViewRef}
           pagingEnabled
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 0 }}

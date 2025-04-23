@@ -25,7 +25,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="w-full border-t border-borderColor shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full border-y border-borderColor shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
           onPress={() => {
             router.push("/settings/import-export");
           }}
@@ -39,7 +39,7 @@ export default function SettingsScreen() {
           <ChevronRight color={isDarkMode ? "white" : "black"} />
         </TouchableOpacity>
 
-        {/* <TouchableOpacity
+        <TouchableOpacity
           className="w-full border-none shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
           onPress={() => {
             router.push("/settings/theme");
@@ -52,7 +52,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <ChevronRight color={isDarkMode ? "white" : "black"} />
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
     </View>
   );
