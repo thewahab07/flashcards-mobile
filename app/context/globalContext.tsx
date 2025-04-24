@@ -39,12 +39,15 @@ interface WordsContextType {
   setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
   setThemeMode: (mode: ThemeOption) => void;
   themeMode: ThemeOption;
+  wordsChange: boolean;
+  setWordsChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
 export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [words, setWords] = useState<Word[]>([]);
   const [displayedWords, setDisplayedWords] = useState<Word[]>([]);
+  const [wordsChange, setWordsChange] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSystem, setIsSystem] = useState(true);
   const [themeMode, setThemeMode] = useState<ThemeOption>("system");
@@ -163,6 +166,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
       setWords(updatedWords);
       setDisplayedWords(updatedWords);
       AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+      setWordsChange(!wordsChange);
 
       toast.success("Another word enters the Hall of Knowledge! 🏛️");
     }
@@ -264,6 +268,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         setNotificationPermission,
         setThemeMode: updateTheme,
         themeMode,
+        setWordsChange,
+        wordsChange,
       }}
     >
       {children}

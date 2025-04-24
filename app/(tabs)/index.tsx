@@ -13,8 +13,13 @@ import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
 import { Check, Filter, SearchX, SortAsc, Trash } from "lucide-react-native";
 import * as Notifications from "expo-notifications";
-import { RelativePathString, useRouter } from "expo-router";
-import { useLocalSearchParams } from "expo-router";
+import {
+  usePathname,
+  useSegments,
+  router,
+  useLocalSearchParams,
+} from "expo-router";
+import * as Linking from "expo-linking";
 interface WordItem {
   word: string;
   definition: string;
@@ -22,12 +27,28 @@ interface WordItem {
   id: number;
 }
 const { height } = Dimensions.get("window");
+Linking.addEventListener("url", async (event) => {
+  if (event.url.startsWith("myapp://word/")) {
+    const wordId = event.url.split("/").pop();
+    if (wordId) {
+      await AsyncStorage.setItem("notificationWordId", wordId);
+      // The navigation will happen in your component using this stored value
+    }
+  }
+});
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: true,
   }),
+});
+Notifications.addNotificationResponseReceivedListener(async (response) => {
+  const url = response.notification.request.content.data?.url;
+  if (url) {
+    await Linking.openURL(url);
+  }
 });
 export default function Home() {
   const {
@@ -38,6 +59,8 @@ export default function Home() {
     notificationPermission,
     setNotificationPermission,
     isDarkMode,
+    wordsChange,
+    setWordsChange,
   } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -52,8 +75,14 @@ export default function Home() {
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
-  const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
+  const params = useLocalSearchParams();
+  useEffect(() => {
+    if (params.wordId && displayedWords.length > 0) {
+      const wordId = Number(params.wordId);
+      scrollToWord(wordId);
+    }
+  }, [params.wordId, displayedWords]);
 
   useEffect(() => {
     const loadWords = async () => {
@@ -94,7 +123,7 @@ export default function Home() {
       const startOfDay = new Date(localTime.setHours(9, 0, 0, 0)); // 9:00 AM local time
       const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
 
-      // console.log("Scheduling notifications for selected words...");
+      console.log("Scheduling notifications for selected words...");
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
@@ -108,7 +137,7 @@ export default function Home() {
       // Loop through the fixed times and schedule notifications
       for (let i = 0; i < fixedTimes.length; i++) {
         const triggerTime = fixedTimes[i];
-        // console.log(triggerTime);
+        //console.log(triggerTime);
 
         // Ensure we have a word to schedule
         const wordIndex = i % shuffled.length; // Get word based on fixed time
@@ -117,7 +146,7 @@ export default function Home() {
         // If there is no word, continue to the next fixed time
         if (!word) continue;
 
-        // console.log(word.word); // Logging the word to be sent in the notification
+        //console.log(word.word); // Logging the word to be sent in the notification
 
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -127,6 +156,7 @@ export default function Home() {
             priority: Notifications.AndroidNotificationPriority.HIGH,
             data: {
               wordId: word.id, // include the ID
+              url: `myapp://word/${word.id}`,
             },
           },
           trigger: {
@@ -139,7 +169,7 @@ export default function Home() {
     };
 
     setupNotifications();
-  }, [words]); // Re-run when the words list changes (e.g., words are deleted)
+  }, [wordsChange]); // Re-run when the words list changes (e.g., words are deleted)
 
   const scrollToWord = (wordId: number) => {
     const index = displayedWords.findIndex((w) => w.id === wordId);
@@ -152,25 +182,36 @@ export default function Home() {
     }
   };
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const wordId = response.notification.request.content.data.wordId;
-        if (wordId !== undefined) {
-          router.push(`/?wordId=${wordId}` as RelativePathString);
+    const getNotificationID = async () => {
+      try {
+        const wordId = await AsyncStorage.getItem("notificationWordId");
+        if (wordId) {
+          // Clear it after getting it to prevent repeated processing
+          await AsyncStorage.removeItem("notificationWordId");
+          scrollToWord(Number(wordId));
+          console.log("Word ID from storage:", wordId);
+        }
+      } catch (error) {
+        console.error("Error retrieving notification word ID:", error);
+      }
+    };
+
+    getNotificationID();
+
+    // Setup URL handling for this component
+    const subscription = Linking.addEventListener("url", (event) => {
+      if (event.url.startsWith("myapp://word/")) {
+        const wordId = event.url.split("/").pop();
+        if (wordId) {
+          scrollToWord(Number(wordId));
         }
       }
-    );
+    });
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+    };
   }, []);
-  const { wordId } = useLocalSearchParams();
-  useEffect(() => {
-    if (wordId) {
-      scrollToWord(Number(wordId));
-      console.log("Word ID from URL:", wordId);
-    }
-    console.log("hahahah");
-  }, [wordId]);
 
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
@@ -189,6 +230,7 @@ export default function Home() {
     setWords(updatedWords);
     setDisplayedWords(updatedWords);
     AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+    setWordsChange(!wordsChange);
 
     toast.error("Poof! That word just vanished into the void. 🚀");
     setIsDeleteDialogOpen(false);
@@ -242,10 +284,18 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 0 }}
           className="w-full h-full"
+          // Modify your onMomentumScrollEnd handler in the ScrollView
           onMomentumScrollEnd={(event) => {
             const offsetY = event.nativeEvent.contentOffset.y;
-            const index = Math.round(offsetY / height); // height is already defined from Dimensions
+            const index = Math.round(offsetY / height);
             setCurrentIndex(index);
+
+            // Get the current word ID
+            const currentWordId = displayedWords[index]?.id;
+            if (currentWordId !== undefined) {
+              // Update the URL without actual navigation
+              router.setParams({ wordId: currentWordId.toString() });
+            }
           }}
         >
           {displayedWords.map((item, id) => (
