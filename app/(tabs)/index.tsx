@@ -123,12 +123,12 @@ export default function Home() {
       const startOfDay = new Date(localTime.setHours(9, 0, 0, 0)); // 9:00 AM local time
       const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
 
-      console.log("Scheduling notifications for selected words...");
+      //console.log("Scheduling notifications for selected words...");
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 720; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 1 * 60 * 1000);
+      for (let i = 0; i < 18; i++) {
+        const triggerTime = new Date(startOfDay.getTime() + i * 40 * 60 * 1000);
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -189,7 +189,7 @@ export default function Home() {
           // Clear it after getting it to prevent repeated processing
           await AsyncStorage.removeItem("notificationWordId");
           scrollToWord(Number(wordId));
-          console.log("Word ID from storage:", wordId);
+          //console.log("Word ID from storage:", wordId);
         }
       } catch (error) {
         console.error("Error retrieving notification word ID:", error);
