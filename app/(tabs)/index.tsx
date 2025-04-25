@@ -32,6 +32,8 @@ Linking.addEventListener("url", async (event) => {
     const wordId = event.url.split("/").pop();
     if (wordId) {
       await AsyncStorage.setItem("notificationWordId", wordId);
+      //console.log("Stored!");
+
       // The navigation will happen in your component using this stored value
     }
   }
@@ -51,17 +53,8 @@ Notifications.addNotificationResponseReceivedListener(async (response) => {
   }
 });
 export default function Home() {
-  const {
-    words,
-    setWords,
-    displayedWords,
-    setDisplayedWords,
-    notificationPermission,
-    setNotificationPermission,
-    isDarkMode,
-    wordsChange,
-    setWordsChange,
-  } = useWords();
+  const { words, setWords, displayedWords, setDisplayedWords, isDarkMode } =
+    useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -76,6 +69,8 @@ export default function Home() {
     [key: number]: boolean;
   }>({});
   const scrollViewRef = useRef<ScrollView>(null);
+  const openedFromNotificationRef = useRef(false);
+  const isFirstRun = useRef(true);
   const params = useLocalSearchParams();
   useEffect(() => {
     if (params.wordId && displayedWords.length > 0) {
@@ -83,7 +78,18 @@ export default function Home() {
       scrollToWord(wordId);
     }
   }, [params.wordId, displayedWords]);
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      async (response) => {
+        const url = response.notification.request.content.data?.url;
+        if (url) {
+          openedFromNotificationRef.current = true; // <-- Mark that we opened via notification
+        }
+      }
+    );
 
+    return () => subscription.remove();
+  }, []);
   useEffect(() => {
     const loadWords = async () => {
       const storedWords = await AsyncStorage.getItem("words");
@@ -104,16 +110,19 @@ export default function Home() {
     loadWords();
   }, []);
   useEffect(() => {
+    if (isFirstRun.current || openedFromNotificationRef.current) {
+      isFirstRun.current = false;
+      openedFromNotificationRef.current = false;
+      return;
+    }
     const setupNotifications = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
-        setNotificationPermission(false);
         return;
       }
 
       await Notifications.cancelAllScheduledNotificationsAsync(); // Prevent duplicates
-      setNotificationPermission(true);
-      if (words.length === 0 && notificationPermission == false) return;
+      if (words.length === 0) return;
 
       const shuffled = shuffleArray(words); // Shuffle the words for randomness
       const now = new Date();
@@ -127,8 +136,8 @@ export default function Home() {
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 18; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 40 * 60 * 1000);
+      for (let i = 0; i < 24; i++) {
+        const triggerTime = new Date(startOfDay.getTime() + i * 30 * 60 * 1000);
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -169,7 +178,7 @@ export default function Home() {
     };
 
     setupNotifications();
-  }, [wordsChange]); // Re-run when the words list changes (e.g., words are deleted)
+  }, [words]); // Re-run when the words list changes (e.g., words are deleted)
 
   const scrollToWord = (wordId: number) => {
     const index = displayedWords.findIndex((w) => w.id === wordId);
@@ -182,22 +191,17 @@ export default function Home() {
     }
   };
   useEffect(() => {
-    const getNotificationID = async () => {
-      try {
-        const wordId = await AsyncStorage.getItem("notificationWordId");
-        if (wordId) {
-          // Clear it after getting it to prevent repeated processing
-          await AsyncStorage.removeItem("notificationWordId");
-          scrollToWord(Number(wordId));
-          //console.log("Word ID from storage:", wordId);
-        }
-      } catch (error) {
-        console.error("Error retrieving notification word ID:", error);
+    const checkAndScroll = async () => {
+      const storedId = await AsyncStorage.getItem("notificationWordId");
+      if (storedId && displayedWords.length > 0) {
+        await AsyncStorage.removeItem("notificationWordId");
+        scrollToWord(Number(storedId));
       }
     };
 
-    getNotificationID();
-
+    checkAndScroll();
+  }, [displayedWords]);
+  useEffect(() => {
     // Setup URL handling for this component
     const subscription = Linking.addEventListener("url", (event) => {
       if (event.url.startsWith("myapp://word/")) {
@@ -230,7 +234,6 @@ export default function Home() {
     setWords(updatedWords);
     setDisplayedWords(updatedWords);
     AsyncStorage.setItem("words", JSON.stringify(updatedWords));
-    setWordsChange(!wordsChange);
 
     toast.error("Poof! That word just vanished into the void. 🚀");
     setIsDeleteDialogOpen(false);
