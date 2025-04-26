@@ -34,7 +34,7 @@ Linking.addEventListener("url", async (event) => {
       await AsyncStorage.setItem("notificationWordId", wordId);
       //console.log("Stored!");
 
-      // The navigation will happen in your component using this stored value
+      // The navigation will happen in your component using this stored value Stoooooooooooooop!!!!
     }
   }
 });
@@ -72,8 +72,15 @@ export default function Home() {
   const openedFromNotificationRef = useRef(false);
   const isFirstRun = useRef(true);
   const params = useLocalSearchParams();
+  const isManuallyScrolling = useRef(false);
+  const hasScrolledAfterNotification = useRef(false);
+  const pendingWordIdScroll = useRef<number | null>(null);
   useEffect(() => {
-    if (params.wordId && displayedWords.length > 0) {
+    if (
+      params.wordId &&
+      displayedWords.length > 0 &&
+      !hasScrolledAfterNotification.current
+    ) {
       const wordId = Number(params.wordId);
       scrollToWord(wordId);
     }
@@ -132,12 +139,12 @@ export default function Home() {
       const startOfDay = new Date(localTime.setHours(9, 0, 0, 0)); // 9:00 AM local time
       const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
 
-      //console.log("Scheduling notifications for selected words...");
+      console.log("Scheduling notifications for selected words...");
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 24; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 30 * 60 * 1000);
+      for (let i = 0; i < 720; i++) {
+        const triggerTime = new Date(startOfDay.getTime() + i * 1 * 60 * 1000);
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -162,7 +169,7 @@ export default function Home() {
             title: "Flash Word",
             body: `Do you remember ${word.word}?`,
             sound: true,
-            priority: Notifications.AndroidNotificationPriority.HIGH,
+            priority: Notifications.AndroidNotificationPriority.MAX,
             data: {
               wordId: word.id, // include the ID
               url: `myapp://word/${word.id}`,
@@ -188,34 +195,79 @@ export default function Home() {
         animated: true,
       });
       setCurrentIndex(index);
+      // Reset the pending word ID after scrolling
+      pendingWordIdScroll.current = null;
+
+      // Give time for the scroll to complete before allowing other scrolls
+      setTimeout(() => {
+        isManuallyScrolling.current = false;
+      }, 500);
     }
   };
   useEffect(() => {
-    const checkAndScroll = async () => {
+    const handleNotifications = async () => {
       const storedId = await AsyncStorage.getItem("notificationWordId");
       if (storedId && displayedWords.length > 0) {
+        const wordId = Number(storedId);
+        pendingWordIdScroll.current = wordId;
         await AsyncStorage.removeItem("notificationWordId");
-        scrollToWord(Number(storedId));
+        hasScrolledAfterNotification.current = true;
+
+        // Delay the scroll to make sure all layout has completed
+        setTimeout(() => {
+          scrollToWord(wordId);
+        }, 300);
       }
     };
 
-    checkAndScroll();
+    if (displayedWords.length > 0) {
+      handleNotifications();
+    }
   }, [displayedWords]);
   useEffect(() => {
-    // Setup URL handling for this component
-    const subscription = Linking.addEventListener("url", (event) => {
+    // Listen for deep links
+    const linkSubscription = Linking.addEventListener("url", (event) => {
       if (event.url.startsWith("myapp://word/")) {
         const wordId = event.url.split("/").pop();
         if (wordId) {
-          scrollToWord(Number(wordId));
+          const numWordId = Number(wordId);
+          pendingWordIdScroll.current = numWordId;
+
+          // Only scroll if we have words to display
+          if (displayedWords.length > 0) {
+            hasScrolledAfterNotification.current = true;
+            scrollToWord(numWordId);
+          }
         }
       }
     });
 
+    // Listen for notification responses
+    const notificationSubscription =
+      Notifications.addNotificationResponseReceivedListener(
+        async (response) => {
+          const url = response.notification.request.content.data?.url;
+          if (url && typeof url === "string") {
+            // Instead of opening the URL directly, store the word ID
+            const wordId = url.split("/").pop();
+            if (wordId) {
+              await AsyncStorage.setItem("notificationWordId", wordId);
+              hasScrolledAfterNotification.current = true;
+
+              // We'll handle the actual navigation in the useEffect above
+              if (displayedWords.length > 0) {
+                scrollToWord(Number(wordId));
+              }
+            }
+          }
+        }
+      );
+
     return () => {
-      subscription.remove();
+      linkSubscription.remove();
+      notificationSubscription.remove();
     };
-  }, []);
+  }, [displayedWords]);
 
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
@@ -261,17 +313,26 @@ export default function Home() {
   const shuffleArray = (arr: Array<WordItem>) => {
     return [...arr].sort(() => Math.random() - 0.5);
   };
+
   useEffect(() => {
-    setDisplayedWords(
+    // First, update the displayed words based on the render type
+    const newDisplayedWords =
       renderType === "random"
         ? shuffleArray(words)
         : renderType === "dateAsc"
         ? words
         : renderType === "dateDes"
         ? [...words].reverse()
-        : words
-    );
-  }, [renderType, words, setDisplayedWords]);
+        : words;
+
+    setDisplayedWords(newDisplayedWords);
+
+    // Only update the URL params if we have words to display
+    if (newDisplayedWords.length > 0) {
+      // Just update the parameter, don't replace the whole route
+      router.setParams({ wordId: newDisplayedWords[0].id.toString() });
+    }
+  }, [renderType, words]);
   return (
     <View className="w-full h-screen">
       {words.length == 0 ? (
@@ -285,20 +346,31 @@ export default function Home() {
           ref={scrollViewRef}
           pagingEnabled
           showsVerticalScrollIndicator={false}
+          snapToInterval={height} // important: snap at every full screen
+          snapToAlignment="start"
+          decelerationRate="fast"
+          disableIntervalMomentum
+          overScrollMode="never"
           contentContainerStyle={{ paddingTop: 0 }}
           className="w-full h-full"
           // Modify your onMomentumScrollEnd handler in the ScrollView
           onMomentumScrollEnd={(event) => {
-            const offsetY = event.nativeEvent.contentOffset.y;
-            const index = Math.round(offsetY / height);
-            setCurrentIndex(index);
+            // Only update index and params if not from notification handling
+            if (!isManuallyScrolling.current) {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              const index = Math.round(offsetY / height);
+              setCurrentIndex(index);
 
-            // Get the current word ID
-            const currentWordId = displayedWords[index]?.id;
-            if (currentWordId !== undefined) {
-              // Update the URL without actual navigation
-              router.setParams({ wordId: currentWordId.toString() });
+              // Get the current word ID
+              const currentWordId = displayedWords[index]?.id;
+              if (currentWordId !== undefined) {
+                // Update the URL without actual navigation
+                router.setParams({ wordId: currentWordId.toString() });
+              }
             }
+
+            // Reset notification flag after first scroll completes
+            hasScrolledAfterNotification.current = false;
           }}
         >
           {displayedWords.map((item, id) => (
