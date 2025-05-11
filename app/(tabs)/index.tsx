@@ -11,7 +11,15 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
-import { Check, Filter, SearchX, SortAsc, Trash } from "lucide-react-native";
+import {
+  Check,
+  Filter,
+  Pen,
+  PencilLine,
+  SearchX,
+  SortAsc,
+  Trash,
+} from "lucide-react-native";
 import * as Notifications from "expo-notifications";
 import {
   usePathname,
@@ -143,8 +151,8 @@ export default function Home() {
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 720; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 1 * 60 * 1000);
+      for (let i = 0; i < 24; i++) {
+        const triggerTime = new Date(startOfDay.getTime() + i * 30 * 60 * 1000);
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -199,9 +207,6 @@ export default function Home() {
       pendingWordIdScroll.current = null;
 
       // Give time for the scroll to complete before allowing other scrolls
-      setTimeout(() => {
-        isManuallyScrolling.current = false;
-      }, 500);
     }
   };
   useEffect(() => {
@@ -343,34 +348,16 @@ export default function Home() {
         </View>
       ) : (
         <ScrollView
-          ref={scrollViewRef}
           pagingEnabled
           showsVerticalScrollIndicator={false}
-          snapToInterval={height} // important: snap at every full screen
-          snapToAlignment="start"
-          decelerationRate="fast"
-          disableIntervalMomentum
-          overScrollMode="never"
           contentContainerStyle={{ paddingTop: 0 }}
           className="w-full h-full"
-          // Modify your onMomentumScrollEnd handler in the ScrollView
+          decelerationRate="fast" // <-- This makes the scroll snap faster
+          scrollEventThrottle={16} // <-- Ensures smooth scrolling updates
           onMomentumScrollEnd={(event) => {
-            // Only update index and params if not from notification handling
-            if (!isManuallyScrolling.current) {
-              const offsetY = event.nativeEvent.contentOffset.y;
-              const index = Math.round(offsetY / height);
-              setCurrentIndex(index);
-
-              // Get the current word ID
-              const currentWordId = displayedWords[index]?.id;
-              if (currentWordId !== undefined) {
-                // Update the URL without actual navigation
-                router.setParams({ wordId: currentWordId.toString() });
-              }
-            }
-
-            // Reset notification flag after first scroll completes
-            hasScrolledAfterNotification.current = false;
+            const offsetY = event.nativeEvent.contentOffset.y;
+            const index = Math.round(offsetY / height); // height is already defined from Dimensions
+            setCurrentIndex(index);
           }}
         >
           {displayedWords.map((item, id) => (
@@ -379,42 +366,78 @@ export default function Home() {
               style={{ height: height }}
               className="items-center justify-center px-4"
             >
-              <View className="border-2 rounded-lg border-[#b1b1b1] h-[70%] w-[80%] items-center justify-center">
-                <TouchableOpacity
-                  activeOpacity={1}
-                  className="w-full h-full items-center justify-center"
-                  onPress={() => {
-                    toggleDefinition(id);
+              <View className="w-[85%] h-[60%] items-center justify-center">
+                <View
+                  className="w-full h-full rounded-3xl bg-white dark:bg-black"
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 10, // Android shadow
                   }}
                 >
-                  {visibleDefinitions[id] ? (
-                    <View className="items-center justify-center w-full">
-                      <Text className="text-3xl text-gray-500">
-                        {item.definition}
-                      </Text>
-                      <View className="flex-row justify-center items-center">
-                        {item.tags.map((tags, num) => (
-                          <Text
-                            key={num}
-                            className="border border-borderColor text-black dark:text-white my-2 mx-1 px-2 py-1 rounded-xl"
-                          >
-                            {tags}
-                          </Text>
-                        ))}
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    className="w-full h-[85%] items-center justify-center rounded-3xl overflow-hidden"
+                    onPress={() => {
+                      toggleDefinition(id);
+                    }}
+                  >
+                    {visibleDefinitions[id] ? (
+                      <View className="items-center justify-center w-full">
+                        <Text className="text-3xl text-gray-500">
+                          {item.definition}
+                        </Text>
+                        <View className="flex-row justify-center items-center">
+                          {item.tags.map((tags, num) => (
+                            <View
+                              className="text-white bg-primary my-2 mx-1 px-3 py-[1px] pb-[2px] rounded-xl items-center justify-center"
+                              key={num}
+                            >
+                              <Text className="text-white dark:text-white text-sm text-center">
+                                {tags}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
                       </View>
+                    ) : (
+                      <Text className="text-5xl font-bold text-primary dark:text-white">
+                        {item.word}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <View className="w-full h-[15%] rounded-b-3xl border-t border-borderColor items-center justify-around flex-row">
+                    <View>
+                      <Trash
+                        onPress={() => {
+                          setIsDeleteDialogOpen(true);
+                        }}
+                        size={22}
+                        color={isDarkMode ? "white" : "#9ca3af"}
+                      />
                     </View>
-                  ) : (
-                    <Text className="text-5xl font-bold text-black dark:text-white">
-                      {item.word}
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                    <View>
+                      <Text className="text-primary">Tap to reveal 👆</Text>
+                    </View>
+                    <View>
+                      <PencilLine
+                        // onPress={() => {
+
+                        // }}
+                        size={22}
+                        color={isDarkMode ? "white" : "#9ca3af"}
+                      />
+                    </View>
+                  </View>
+                </View>
               </View>
             </View>
           ))}
         </ScrollView>
       )}
-      <View className="h-full w-[14%] absolute right-0  py-36 items-center justify-between">
+      {/* <View className="h-full w-[14%] absolute right-0  py-36 items-center justify-between">
         <View>
           <View>
             <Filter
@@ -464,9 +487,9 @@ export default function Home() {
             />
           </View>
         </View>
-      </View>
+      </View> */}
       <View className="justify-center pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor absolute top-0 w-full px-6 h-20">
-        <Text className="text-3xl font-bold text-black dark:text-white">
+        <Text className="text-3xl font-bold text-primary dark:text-white">
           Flash
         </Text>
       </View>
