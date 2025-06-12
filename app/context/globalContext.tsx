@@ -41,6 +41,8 @@ interface WordsContextType {
   themeMode: ThemeOption;
   wordsChange: boolean;
   setWordsChange: React.Dispatch<React.SetStateAction<boolean>>;
+  activeWho: number;
+  setActiveWho: React.Dispatch<React.SetStateAction<number>>;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
@@ -52,6 +54,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [isSystem, setIsSystem] = useState(true);
   const [themeMode, setThemeMode] = useState<ThemeOption>("system");
   const [notificationPermission, setNotificationPermission] = useState(false);
+  const [activeWho, setActiveWho] = useState(0);
 
   useEffect(() => {
     async function loadSavedWords() {
@@ -270,6 +273,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         themeMode,
         setWordsChange,
         wordsChange,
+        activeWho,
+        setActiveWho,
       }}
     >
       {children}

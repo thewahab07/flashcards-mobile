@@ -5,12 +5,11 @@ import { useWords } from "@/app/context/globalContext";
 import { HomeIcon, Plus, Settings } from "lucide-react-native";
 
 export default function BottomMenu() {
-  const { addWord, isDarkMode } = useWords();
+  const { addWord, isDarkMode, activeWho } = useWords();
   const [newWord, setNewWord] = useState("");
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [activeWho, setActiveWho] = useState(0);
 
   const router = useRouter();
   const handleAddWord = () => {
@@ -26,22 +25,12 @@ export default function BottomMenu() {
     setTagValue("");
     setIsModalVisible(false);
   };
-  const pathname = usePathname();
-  const isSettings = pathname.endsWith("/settings");
-  useEffect(() => {
-    if (isSettings) {
-      setActiveWho(1);
-    } else {
-      setActiveWho(0);
-    }
-  }, []);
   return (
     <View className="flex-row justify-between dark:bg-backgroundDark dark:text-white bg-background text-black border-t border-borderColor absolute bottom-0 w-full py-2">
       <View className="justify-center items-center ml-4">
         <TouchableOpacity
           onPress={() => {
             router.push("/");
-            setActiveWho(0);
           }}
           className="px-2 py-3 justify-center items-center flex-row"
         >
@@ -69,7 +58,6 @@ export default function BottomMenu() {
         <TouchableOpacity
           onPress={() => {
             router.push("./settings");
-            setActiveWho(1);
           }}
           className="px-2 py-3 justify-center items-center flex-row"
         >
