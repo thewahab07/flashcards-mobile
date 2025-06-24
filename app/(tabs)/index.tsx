@@ -11,28 +11,16 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
-import {
-  Check,
-  Filter,
-  Pen,
-  PencilLine,
-  SearchX,
-  SortAsc,
-  Trash,
-} from "lucide-react-native";
+import { Bookmark, Check, Filter, SortAsc, Trash } from "lucide-react-native";
 import * as Notifications from "expo-notifications";
-import {
-  usePathname,
-  useSegments,
-  router,
-  useLocalSearchParams,
-} from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Linking from "expo-linking";
 interface WordItem {
   word: string;
   definition: string;
   tags: Array<string>;
   id: number;
+  isMarked: boolean;
 }
 const { height } = Dimensions.get("window");
 Linking.addEventListener("url", async (event) => {
@@ -61,8 +49,15 @@ Notifications.addNotificationResponseReceivedListener(async (response) => {
   }
 });
 export default function Home() {
-  const { words, setWords, displayedWords, setDisplayedWords, isDarkMode } =
-    useWords();
+  const {
+    words,
+    setWords,
+    displayedWords,
+    setDisplayedWords,
+    isDarkMode,
+    toggleBookmark,
+    showMarkedWordsOnly,
+  } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -122,6 +117,7 @@ export default function Home() {
       }
     };
     loadWords();
+    console.log(displayedWords);
   }, []);
   useEffect(() => {
     if (isFirstRun.current || openedFromNotificationRef.current) {
@@ -327,6 +323,8 @@ export default function Home() {
         ? words
         : renderType === "dateDes"
         ? [...words].reverse()
+        : renderType === "marked"
+        ? words.filter((word) => word.isMarked)
         : words;
 
     setDisplayedWords(newDisplayedWords);
@@ -421,12 +419,12 @@ export default function Home() {
                       <Text className="text-primary">Tap to reveal 👆</Text>
                     </View>
                     <View>
-                      <PencilLine
-                        // onPress={() => {
-
-                        // }}
+                      <Text className="text-black"></Text>
+                      <Bookmark
+                        onPress={() => toggleBookmark(item.id)}
                         size={22}
                         color={isDarkMode ? "white" : "#9ca3af"}
+                        fill={item.isMarked ? "#9ca3af" : "none"}
                       />
                     </View>
                   </View>
@@ -436,51 +434,7 @@ export default function Home() {
           ))}
         </ScrollView>
       )}
-      {/* <View className="h-full w-[14%] absolute right-0  py-36 items-center justify-between">
-        <View>
-          <View>
-            <Filter
-              onPress={() => {
-                setIsSearchDialogOpen(true);
-              }}
-              size={32}
-              color={isDarkMode ? "white" : "black"}
-            />
-          </View>
-          <View className="my-4">
-            <SortAsc
-              onPress={() => {
-                setIsSortDialog(true);
-              }}
-              size={32}
-              color={isDarkMode ? "white" : "black"}
-            />
-          </View>
-          {seachReset && (
-            <TouchableOpacity
-              onPress={() => {
-                setDisplayedWords(words);
-                setSearchQuery("");
-                setSeachReset(false);
-              }}
-            >
-              <SearchX size={32} color={isDarkMode ? "white" : "black"} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <View>
-          
-          <View className="mt-4">
-            <Trash
-              onPress={() => {
-                setIsDeleteDialogOpen(true);
-              }}
-              size={32}
-              color={isDarkMode ? "white" : "black"}
-            />
-          </View>
-        </View>
-      </View> */}
+
       <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor absolute top-0 w-full px-6 h-20">
         <View>
           <Text className="text-3xl font-bold text-primary dark:text-white">
@@ -640,13 +594,31 @@ export default function Home() {
                 setRenderType("random");
                 setIsSortDialog(false);
               }}
-              className="w-full"
+              className="w-full border-b border-borderColor"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
                 <Text className="text-xl text-black dark:text-white">
                   Random
                 </Text>
                 {renderType === "random" && (
+                  <View className="items-center justify-center">
+                    <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setRenderType("marked");
+                setIsSortDialog(false);
+              }}
+              className="w-full"
+            >
+              <View className="flex-row justify-between items-center w-full px-2 py-4">
+                <Text className="text-xl text-black dark:text-white">
+                  Bookmarked
+                </Text>
+                {renderType === "marked" && (
                   <View className="items-center justify-center">
                     <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
                   </View>

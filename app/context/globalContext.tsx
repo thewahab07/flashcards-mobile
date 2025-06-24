@@ -11,6 +11,7 @@ interface Word {
   definition: string;
   tags: string[];
   id: number;
+  isMarked: boolean;
 }
 type ThemeOption = "light" | "dark" | "system";
 
@@ -29,6 +30,8 @@ interface WordsContextType {
   displayedWords: Word[];
   setDisplayedWords: React.Dispatch<React.SetStateAction<Word[]>>;
   addWord: (word: string, definition: string, tags: string[]) => void;
+  toggleBookmark: (wordId: number) => void;
+  showMarkedWordsOnly: () => void;
   exportWords: () => void;
   importWords: () => void;
   notificationPermission: boolean;
@@ -164,6 +167,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
           definition: newDefinition,
           tags: newTags || [],
           id: Math.random(),
+          isMarked: false,
         },
       ];
       setWords(updatedWords);
@@ -173,6 +177,18 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
 
       toast.success("Another word enters the Hall of Knowledge! 🏛️");
     }
+  };
+  const toggleBookmark = (wordId: number) => {
+    const updated = words.map((word) =>
+      word.id === wordId ? { ...word, isMarked: !word.isMarked } : word
+    );
+    setWords(updated);
+    setDisplayedWords(updated);
+    AsyncStorage.setItem("words", JSON.stringify(updated)); // persist
+  };
+  const showMarkedWordsOnly = () => {
+    const markedWords = words.filter((word) => word.isMarked);
+    setDisplayedWords(markedWords);
   };
   const exportWords = async () => {
     try {
@@ -237,6 +253,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
             definition,
             tags,
             id: Math.random(), // Generate new ID
+            isMarked: false,
           });
         }
       });
@@ -261,6 +278,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         displayedWords,
         setDisplayedWords,
         addWord,
+        toggleBookmark,
+        showMarkedWordsOnly,
         isDarkMode,
         setIsDarkMode,
         isSystem,
