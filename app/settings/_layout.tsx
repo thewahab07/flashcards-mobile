@@ -9,13 +9,20 @@ export default function SettingsLayout() {
   const { isDarkMode } = useWords();
   return (
     <View>
-      <View className="items-center flex-row pt-1 border-b border-borderColor absolute top-0 w-full px-6 h-20 dark:bg-backgroundDark bg-background">
-        <Pressable onPress={() => router.back()}>
-          <ChevronLeft color={isDarkMode ? "white" : "black"} />
-        </Pressable>
-        <Text className="text-3xl font-bold ml-3 text-black dark:text-white">
-          Settings
-        </Text>
+      <View className="justify-between items-center flex-row pt-1 border-b border-borderColor absolute top-0 w-full px-6 h-20 dark:bg-backgroundDark bg-background">
+        <View className="flex-row items-center">
+          <Pressable onPress={() => router.back()}>
+            <ChevronLeft color={isDarkMode ? "white" : "black"} />
+          </Pressable>
+          <Text className="text-3xl ml-3 text-black dark:text-white font-urbanist-bold">
+            Settings
+          </Text>
+        </View>
+        <View className="px-6">
+          <Text className="text-3xl text-primary dark:text-white font-sevillana-regular">
+            Flash
+          </Text>
+        </View>
       </View>
       <View className="mt-20 dark:bg-backgroundDark bg-background">
         <Slot />

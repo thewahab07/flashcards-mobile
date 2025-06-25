@@ -36,7 +36,7 @@ export default function BottomMenu() {
         >
           <HomeIcon size={28} color={activeWho === 0 ? "#7c4dff" : "black"} />
           {activeWho === 0 ? (
-            <Text className="text-lg text-primary dark:text-white ml-1">
+            <Text className="text-lg text-primary dark:text-white ml-1 font-urbanist-bold">
               Home
             </Text>
           ) : (
@@ -63,7 +63,7 @@ export default function BottomMenu() {
         >
           <Settings size={28} color={activeWho === 1 ? "#7c4dff" : "black"} />
           {activeWho === 1 ? (
-            <Text className="text-xl text-primary dark:text-white ml-1">
+            <Text className="text-xl text-primary dark:text-white ml-1 font-urbanist-bold">
               Settings
             </Text>
           ) : (
@@ -78,7 +78,7 @@ export default function BottomMenu() {
             <TextInput
               placeholder="Enter word"
               placeholderTextColor="#888"
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white font-urbanist-medium"
               value={newWord}
               onChangeText={setNewWord}
             />
@@ -86,7 +86,7 @@ export default function BottomMenu() {
               placeholder="Enter definition"
               placeholderTextColor="#888"
               style={{ textAlignVertical: "top" }}
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary h-24 text-black dark:text-white"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary h-24 text-black dark:text-white font-urbanist-medium"
               multiline
               value={newDefinition}
               onChangeText={setNewDefinition}
@@ -94,7 +94,7 @@ export default function BottomMenu() {
             <TextInput
               placeholder="Enter tags (comma separated)"
               placeholderTextColor="#888"
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white font-urbanist-medium"
               value={tagValue}
               onChangeText={setTagValue}
             />
@@ -103,7 +103,7 @@ export default function BottomMenu() {
               className="bg-primary dark:bg-background p-3 rounded-lg items-center mb-2"
               onPress={handleAddWord}
             >
-              <Text className="text-white font-extrabold dark:text-black">
+              <Text className="text-white dark:text-black font-urbanist-semibold">
                 Add Word
               </Text>
             </TouchableOpacity>
@@ -112,7 +112,7 @@ export default function BottomMenu() {
               className="border border-borderColor p-3 rounded-lg items-center"
               onPress={() => setIsModalVisible(false)}
             >
-              <Text className="font-semibold text-black dark:text-white">
+              <Text className="text-black dark:text-white font-urbanist-semibold">
                 Cancel
               </Text>
             </TouchableOpacity>

@@ -17,7 +17,7 @@ export default function SettingsScreen() {
         >
           <View className="flex-row items-center">
             <Bell color={isDarkMode ? "white" : "black"} />
-            <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
               Notifications
             </Text>
           </View>
@@ -32,7 +32,7 @@ export default function SettingsScreen() {
         >
           <View className="flex-row items-center">
             <Download color={isDarkMode ? "white" : "black"} />
-            <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
               Import/Export
             </Text>
           </View>
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
         >
           <View className="flex-row items-center">
             <SunMoon color={isDarkMode ? "white" : "black"} />
-            <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
               Theme
             </Text>
           </View>

@@ -31,7 +31,6 @@ interface WordsContextType {
   setDisplayedWords: React.Dispatch<React.SetStateAction<Word[]>>;
   addWord: (word: string, definition: string, tags: string[]) => void;
   toggleBookmark: (wordId: number) => void;
-  showMarkedWordsOnly: () => void;
   exportWords: () => void;
   importWords: () => void;
   notificationPermission: boolean;
@@ -186,10 +185,6 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
     setDisplayedWords(updated);
     AsyncStorage.setItem("words", JSON.stringify(updated)); // persist
   };
-  const showMarkedWordsOnly = () => {
-    const markedWords = words.filter((word) => word.isMarked);
-    setDisplayedWords(markedWords);
-  };
   const exportWords = async () => {
     try {
       const filteredWords = words.map(({ id, ...rest }) => rest);
@@ -279,7 +274,6 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         setDisplayedWords,
         addWord,
         toggleBookmark,
-        showMarkedWordsOnly,
         isDarkMode,
         setIsDarkMode,
         isSystem,

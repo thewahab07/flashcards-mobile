@@ -16,7 +16,7 @@ const Theme = () => {
     >
       <View className="flex-row items-center">
         {icon}
-        <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+        <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
           {label}
         </Text>
       </View>

@@ -16,7 +16,7 @@ const ImportExport = () => {
           className="w-full border-none shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
         >
           <View className="flex-row items-center">
-            <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
               Export
             </Text>
           </View>
@@ -30,7 +30,7 @@ const ImportExport = () => {
           className="w-full border-y border-borderColor shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
         >
           <View className="flex-row items-center">
-            <Text className="ml-2 text-lg font-medium text-black dark:text-white">
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
               Import
             </Text>
           </View>

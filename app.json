@@ -23,7 +23,10 @@
           "data": {
             "scheme": "myapp"
           },
-          "category": ["DEFAULT", "BROWSABLE"]
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ]
         }
       ]
     },
@@ -51,7 +54,8 @@
           "mode": "production",
           "useNextNotificationsApi": true
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

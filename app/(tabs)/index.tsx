@@ -8,6 +8,19 @@ import {
   Dimensions,
   Modal,
 } from "react-native";
+import { useFonts } from "@expo-google-fonts/urbanist";
+import { Sevillana_400Regular } from "@expo-google-fonts/sevillana";
+import {
+  Urbanist_400Regular,
+  Urbanist_700Bold,
+  Urbanist_100Thin,
+  Urbanist_200ExtraLight,
+  Urbanist_300Light,
+  Urbanist_500Medium,
+  Urbanist_600SemiBold,
+  Urbanist_800ExtraBold,
+  Urbanist_900Black,
+} from "@expo-google-fonts/urbanist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useWords } from "../context/globalContext";
 import { toast } from "sonner-native";
@@ -49,6 +62,18 @@ Notifications.addNotificationResponseReceivedListener(async (response) => {
   }
 });
 export default function Home() {
+  const [fontsLoaded] = useFonts({
+    Urbanist_400Regular,
+    Urbanist_700Bold,
+    Urbanist_100Thin,
+    Urbanist_200ExtraLight,
+    Urbanist_300Light,
+    Urbanist_500Medium,
+    Urbanist_600SemiBold,
+    Urbanist_800ExtraBold,
+    Urbanist_900Black,
+    Sevillana_400Regular,
+  });
   const {
     words,
     setWords,
@@ -56,7 +81,6 @@ export default function Home() {
     setDisplayedWords,
     isDarkMode,
     toggleBookmark,
-    showMarkedWordsOnly,
   } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -74,7 +98,6 @@ export default function Home() {
   const openedFromNotificationRef = useRef(false);
   const isFirstRun = useRef(true);
   const params = useLocalSearchParams();
-  const isManuallyScrolling = useRef(false);
   const hasScrolledAfterNotification = useRef(false);
   const pendingWordIdScroll = useRef<number | null>(null);
   useEffect(() => {
@@ -117,7 +140,6 @@ export default function Home() {
       }
     };
     loadWords();
-    console.log(displayedWords);
   }, []);
   useEffect(() => {
     if (isFirstRun.current || openedFromNotificationRef.current) {
@@ -326,7 +348,6 @@ export default function Home() {
         : renderType === "marked"
         ? words.filter((word) => word.isMarked)
         : words;
-
     setDisplayedWords(newDisplayedWords);
 
     // Only update the URL params if we have words to display
@@ -339,8 +360,14 @@ export default function Home() {
     <View className="w-full h-screen">
       {words.length == 0 ? (
         <View className="h-full w-full p-4 flex justify-center items-center">
-          <Text className="text-2xl text-gray-500">
+          <Text className="text-2xl text-gray-500 font-urbanist-medium">
             The void is empty... for now. Add some words to bring it to life! ✨
+          </Text>
+        </View>
+      ) : displayedWords.length == 0 ? (
+        <View className="h-full w-full p-4 flex justify-center items-center">
+          <Text className="text-2xl text-gray-500 font-urbanist-medium">
+            Zero words. Try a different vibe. 🤷‍♂️
           </Text>
         </View>
       ) : (
@@ -383,7 +410,7 @@ export default function Home() {
                   >
                     {visibleDefinitions[id] ? (
                       <View className="items-center justify-center w-full">
-                        <Text className="text-3xl text-gray-500">
+                        <Text className="text-3xl font-urbanist-regular text-gray-500 px-4">
                           {item.definition}
                         </Text>
                         <View className="flex-row justify-center items-center">
@@ -392,7 +419,7 @@ export default function Home() {
                               className="text-white bg-primary my-2 mx-1 px-3 py-[1px] pb-[2px] rounded-xl items-center justify-center"
                               key={num}
                             >
-                              <Text className="text-white dark:text-white text-sm text-center">
+                              <Text className="text-white dark:text-white text-sm text-center font-urbanist-medium">
                                 {tags}
                               </Text>
                             </View>
@@ -400,7 +427,7 @@ export default function Home() {
                         </View>
                       </View>
                     ) : (
-                      <Text className="text-5xl font-bold text-primary dark:text-white">
+                      <Text className="text-5xl font-urbanist-bold text-primary dark:text-white">
                         {item.word}
                       </Text>
                     )}
@@ -416,10 +443,11 @@ export default function Home() {
                       />
                     </View>
                     <View>
-                      <Text className="text-primary">Tap to reveal 👆</Text>
+                      <Text className="text-primary font-urbanist-regular">
+                        Tap to reveal 👆
+                      </Text>
                     </View>
                     <View>
-                      <Text className="text-black"></Text>
                       <Bookmark
                         onPress={() => toggleBookmark(item.id)}
                         size={22}
@@ -437,12 +465,12 @@ export default function Home() {
 
       <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor absolute top-0 w-full px-6 h-20">
         <View>
-          <Text className="text-3xl font-bold text-primary dark:text-white">
+          <Text className="text-3xl text-primary dark:text-white font-sevillana-regular">
             Flash
           </Text>
         </View>
         <View className="flex-row justify-around items-center w-1/2">
-          <Text className="text-xl font-semibold text-[#9ca3af] dark:text-white">
+          <Text className="text-xl font-urbanist-semibold text-[#9ca3af] dark:text-white">
             {displayedWords.length === 0
               ? "0 / 0"
               : `${Math.min(currentIndex + 1, displayedWords.length)}/${
@@ -488,17 +516,17 @@ export default function Home() {
         <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
           <View className="bg-background dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor p-6">
             <View>
-              <Text className="text-xl pl-1 font-bold text-black dark:text-white ">
+              <Text className="text-xl pl-1 text-black dark:text-white font-urbanist-bold">
                 Filter by Tags
               </Text>
               <TextInput
                 placeholder="Enter tags (comma separated)"
                 placeholderTextColor="#888"
-                className="my-2 pl-1 py-2 rounded-lg border-b border-borderColor text-black dark:text-white"
+                className="my-2 pl-1 py-2 rounded-lg border-b border-borderColor text-black dark:text-white font-urbanist-medium"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              <View className="flex-row">
+              <View className="flex-row flex-wrap">
                 {uniqueTags.map((tag, index) => (
                   <TouchableOpacity
                     key={index}
@@ -506,8 +534,8 @@ export default function Home() {
                       setSearchQuery((prev) => (prev ? `${prev}, ${tag}` : tag))
                     }
                   >
-                    <View className="text-white bg-primary my-2 mx-1 px-3 py-[1px] pb-[2px] rounded-xl items-center justify-center">
-                      <Text className="text-white dark:text-white text-sm text-center">
+                    <View className="text-white bg-primary mt-2 mx-1 px-3 py-[1px] pb-[2px] rounded-xl items-center justify-center">
+                      <Text className="text-white dark:text-white text-sm text-center font-urbanist-medium">
                         {tag}
                       </Text>
                     </View>
@@ -524,7 +552,7 @@ export default function Home() {
                   setSearchQuery("");
                 }}
               >
-                <Text className="text-black dark:text-white font-medium">
+                <Text className="text-black dark:text-white font-urbanist-semibold">
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -535,7 +563,7 @@ export default function Home() {
                 }}
                 className="px-4 mx-1 py-2 bg-primary dark:bg-background rounded-md"
               >
-                <Text className="text-white dark:text-black font-medium">
+                <Text className="text-white dark:text-black font-urbanist-semibold">
                   Apply
                 </Text>
               </TouchableOpacity>
@@ -550,7 +578,7 @@ export default function Home() {
           className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]"
         >
           <View className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor p-4 bottom-0 absolute">
-            <Text className="text-2xl pl-2 py-2 font-bold text-black dark:text-white ">
+            <Text className="text-2xl pl-2 py-2 text-black dark:text-white font-urbanist-bold">
               Sort by
             </Text>
             <TouchableOpacity
@@ -561,7 +589,7 @@ export default function Home() {
               className="w-full"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white">
+                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
                   Date added (ascending)
                 </Text>
                 {renderType === "dateAsc" && (
@@ -579,7 +607,7 @@ export default function Home() {
               className="w-full border-y border-borderColor"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white">
+                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
                   Date added (descending)
                 </Text>
                 {renderType === "dateDes" && (
@@ -597,7 +625,7 @@ export default function Home() {
               className="w-full border-b border-borderColor"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white">
+                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
                   Random
                 </Text>
                 {renderType === "random" && (
@@ -615,7 +643,7 @@ export default function Home() {
               className="w-full"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white">
+                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
                   Bookmarked
                 </Text>
                 {renderType === "marked" && (
@@ -629,7 +657,7 @@ export default function Home() {
               className="px-4 mx-1 py-2 mt-2 border border-borderColor rounded-md dark:bg-backgroundDark bg-primary justify-center items-center"
               onPress={() => setIsSortDialog(false)}
             >
-              <Text className="text-white text-xl dark:text-white font-medium">
+              <Text className="text-white text-xl dark:text-white font-urbanist-semibold">
                 Close
               </Text>
             </TouchableOpacity>
@@ -643,10 +671,10 @@ export default function Home() {
       >
         <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
           <View className="bg-white dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor p-6">
-            <Text className="text-xl font-bold text-black dark:text-white mb-1">
+            <Text className="text-xl font-urbanist-bold text-black dark:text-white mb-1">
               Are you sure?
             </Text>
-            <Text className="text-base text-gray-600 dark:text-gray-300 mb-6">
+            <Text className="text-base text-gray-600 dark:text-gray-300 mb-6 font-urbanist-medium">
               Do you really want to delete this word?
             </Text>
             <View className="flex-row justify-end">
@@ -654,7 +682,7 @@ export default function Home() {
                 className="px-4 mx-1 py-2 border border-borderColor rounded-md dark:bg-backgroundDark"
                 onPress={() => setIsDeleteDialogOpen(false)}
               >
-                <Text className="text-black dark:text-white font-medium">
+                <Text className="text-black dark:text-white font-urbanist-semibold">
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -664,7 +692,9 @@ export default function Home() {
                   deleteWord(displayedWords[currentIndex]?.id);
                 }}
               >
-                <Text className="text-white font-medium">Delete</Text>
+                <Text className="text-white font-urbanist-semibold">
+                  Delete
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
