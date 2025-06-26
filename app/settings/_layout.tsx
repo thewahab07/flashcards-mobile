@@ -2,14 +2,15 @@ import { Slot, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { useWords } from "../context/globalContext";
+import { useTheme } from "../context/themeContext";
 
 export default function SettingsLayout() {
   const router = useRouter();
-  const { isDarkMode } = useWords();
+  const { colorScheme } = useTheme();
+  const isDarkMode = colorScheme === "dark";
   return (
     <View>
-      <View className="justify-between items-center flex-row pt-1 border-b border-borderColor absolute top-0 w-full px-6 h-20 dark:bg-backgroundDark bg-background">
+      <View className="justify-between items-center flex-row pt-1 border-b border-borderColor dark:border-borderDark absolute top-0 w-full px-6 h-20 dark:bg-backgroundDark bg-background">
         <View className="flex-row items-center">
           <Pressable onPress={() => router.back()}>
             <ChevronLeft color={isDarkMode ? "white" : "black"} />
@@ -19,7 +20,7 @@ export default function SettingsLayout() {
           </Text>
         </View>
         <View className="px-6">
-          <Text className="text-3xl text-primary dark:text-white font-sevillana-regular">
+          <Text className="text-3xl text-primary font-sevillana-regular">
             Flash
           </Text>
         </View>

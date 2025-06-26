@@ -1,10 +1,11 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Bell, Download, SunMoon, ChevronRight } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { useWords } from "../context/globalContext";
+import { useTheme } from "../context/themeContext";
 
 export default function SettingsScreen() {
-  const { isDarkMode } = useWords();
+  const { colorScheme } = useTheme();
+  const isDarkMode = colorScheme === "dark";
   const router = useRouter();
   return (
     <View className="w-full h-full px-6">
@@ -25,7 +26,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="w-full border-y border-borderColor shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full border-y border-borderColor dark:border-borderDark shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
           onPress={() => {
             router.push("/settings/import-export");
           }}

@@ -1,8 +1,3 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,19 +6,18 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "./global.css";
 import "nativewind";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { WordsProvider } from "./context/globalContext";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomMenu from "@/components/BottomMenu";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ThemeProvider, useTheme } from "./context/themeContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useTheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -41,13 +35,11 @@ export default function RootLayout() {
   return (
     <WordsProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
+        <ThemeProvider>
           <SafeAreaView className="flex-1">
             <Stack screenOptions={{ headerShown: false }} />
           </SafeAreaView>
-          <StatusBar style="auto" />
+          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
           <BottomMenu />
           <Toaster position="bottom-center" richColors />
         </ThemeProvider>

@@ -74,14 +74,8 @@ export default function Home() {
     Urbanist_900Black,
     Sevillana_400Regular,
   });
-  const {
-    words,
-    setWords,
-    displayedWords,
-    setDisplayedWords,
-    isDarkMode,
-    toggleBookmark,
-  } = useWords();
+  const { words, setWords, displayedWords, setDisplayedWords, toggleBookmark } =
+    useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -392,7 +386,7 @@ export default function Home() {
             >
               <View className="w-[85%] h-[60%] items-center justify-center">
                 <View
-                  className="w-full h-full rounded-3xl bg-white dark:bg-black"
+                  className="w-full h-full rounded-3xl bg-white dark:bg-[#1f2937]"
                   style={{
                     shadowColor: "#000",
                     shadowOffset: { width: 0, height: 4 },
@@ -427,19 +421,19 @@ export default function Home() {
                         </View>
                       </View>
                     ) : (
-                      <Text className="text-5xl font-urbanist-bold text-primary dark:text-white">
+                      <Text className="text-5xl font-urbanist-bold text-primary">
                         {item.word}
                       </Text>
                     )}
                   </TouchableOpacity>
-                  <View className="w-full h-[15%] rounded-b-3xl border-t border-borderColor items-center justify-around flex-row">
+                  <View className="w-full h-[15%] rounded-b-3xl border-t border-borderColor dark:border-borderDark items-center justify-around flex-row">
                     <View>
                       <Trash
                         onPress={() => {
                           setIsDeleteDialogOpen(true);
                         }}
                         size={22}
-                        color={isDarkMode ? "white" : "#9ca3af"}
+                        color="#9ca3af"
                       />
                     </View>
                     <View>
@@ -451,7 +445,7 @@ export default function Home() {
                       <Bookmark
                         onPress={() => toggleBookmark(item.id)}
                         size={22}
-                        color={isDarkMode ? "white" : "#9ca3af"}
+                        color="#9ca3af"
                         fill={item.isMarked ? "#9ca3af" : "none"}
                       />
                     </View>
@@ -463,14 +457,14 @@ export default function Home() {
         </ScrollView>
       )}
 
-      <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor absolute top-0 w-full px-6 h-20">
+      <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor dark:border-borderDark absolute top-0 w-full px-6 h-20">
         <View>
-          <Text className="text-3xl text-primary dark:text-white font-sevillana-regular">
+          <Text className="text-3xl text-primary font-sevillana-regular">
             Flash
           </Text>
         </View>
         <View className="flex-row justify-around items-center w-1/2">
-          <Text className="text-xl font-urbanist-semibold text-[#9ca3af] dark:text-white">
+          <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
             {displayedWords.length === 0
               ? "0 / 0"
               : `${Math.min(currentIndex + 1, displayedWords.length)}/${
@@ -483,7 +477,7 @@ export default function Home() {
                 setIsSearchDialogOpen(true);
               }}
               size={22}
-              color={isDarkMode ? "white" : "#9ca3af"}
+              color="#9ca3af"
             />
           </View>
           <View className="my-4">
@@ -492,7 +486,7 @@ export default function Home() {
                 setIsSortDialog(true);
               }}
               size={22}
-              color={isDarkMode ? "white" : "#9ca3af"}
+              color="#9ca3af"
             />
           </View>
           {/* {seachReset && (
@@ -514,7 +508,7 @@ export default function Home() {
         transparent={true}
       >
         <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
-          <View className="bg-background dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor p-6">
+          <View className="bg-background dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor dark:border-borderDark p-6">
             <View>
               <Text className="text-xl pl-1 text-black dark:text-white font-urbanist-bold">
                 Filter by Tags
@@ -522,7 +516,7 @@ export default function Home() {
               <TextInput
                 placeholder="Enter tags (comma separated)"
                 placeholderTextColor="#888"
-                className="my-2 pl-1 py-2 rounded-lg border-b border-borderColor text-black dark:text-white font-urbanist-medium"
+                className="my-2 pl-1 py-2 rounded-lg border-b border-borderColor dark:border-borderDark text-black dark:text-white font-urbanist-medium"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -545,7 +539,7 @@ export default function Home() {
             </View>
             <View className="flex-row justify-end pt-2">
               <TouchableOpacity
-                className="px-4 mx-1 py-2 border border-borderColor rounded-md dark:bg-backgroundDark"
+                className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
                 onPress={() => {
                   setIsSearchDialogOpen(false);
                   setDisplayedWords(words);
@@ -561,11 +555,9 @@ export default function Home() {
                   handleSearch();
                   setIsSearchDialogOpen(false);
                 }}
-                className="px-4 mx-1 py-2 bg-primary dark:bg-background rounded-md"
+                className="px-4 mx-1 py-2 bg-primary rounded-md"
               >
-                <Text className="text-white dark:text-black font-urbanist-semibold">
-                  Apply
-                </Text>
+                <Text className="text-white font-urbanist-semibold">Apply</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -577,7 +569,7 @@ export default function Home() {
           onPress={() => setIsSortDialog(false)}
           className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]"
         >
-          <View className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor p-4 bottom-0 absolute">
+          <View className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor dark:border-borderDark p-4 bottom-0 absolute">
             <Text className="text-2xl pl-2 py-2 text-black dark:text-white font-urbanist-bold">
               Sort by
             </Text>
@@ -594,7 +586,7 @@ export default function Home() {
                 </Text>
                 {renderType === "dateAsc" && (
                   <View className="items-center justify-center">
-                    <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
+                    <Check size={22} color="#9ca3af" />
                   </View>
                 )}
               </View>
@@ -604,7 +596,7 @@ export default function Home() {
                 setRenderType("dateDes");
                 setIsSortDialog(false);
               }}
-              className="w-full border-y border-borderColor"
+              className="w-full border-y border-borderColor dark:border-borderDark"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
                 <Text className="text-xl text-black dark:text-white font-urbanist-medium">
@@ -612,7 +604,7 @@ export default function Home() {
                 </Text>
                 {renderType === "dateDes" && (
                   <View className="items-center justify-center">
-                    <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
+                    <Check size={22} color="#9ca3af" />
                   </View>
                 )}
               </View>
@@ -622,7 +614,7 @@ export default function Home() {
                 setRenderType("random");
                 setIsSortDialog(false);
               }}
-              className="w-full border-b border-borderColor"
+              className="w-full border-b border-borderColor dark:border-borderDark"
             >
               <View className="flex-row justify-between items-center w-full px-2 py-4">
                 <Text className="text-xl text-black dark:text-white font-urbanist-medium">
@@ -630,7 +622,7 @@ export default function Home() {
                 </Text>
                 {renderType === "random" && (
                   <View className="items-center justify-center">
-                    <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
+                    <Check size={22} color="#9ca3af" />
                   </View>
                 )}
               </View>
@@ -648,13 +640,13 @@ export default function Home() {
                 </Text>
                 {renderType === "marked" && (
                   <View className="items-center justify-center">
-                    <Check size={22} color={isDarkMode ? "white" : "#9ca3af"} />
+                    <Check size={22} color="#9ca3af" />
                   </View>
                 )}
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              className="px-4 mx-1 py-2 mt-2 border border-borderColor rounded-md dark:bg-backgroundDark bg-primary justify-center items-center"
+              className="px-4 mx-1 py-2 mt-2 border border-borderColor dark:border-borderDark rounded-md bg-primary justify-center items-center"
               onPress={() => setIsSortDialog(false)}
             >
               <Text className="text-white text-xl dark:text-white font-urbanist-semibold">
@@ -670,7 +662,7 @@ export default function Home() {
         transparent={true}
       >
         <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
-          <View className="bg-white dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor p-6">
+          <View className="bg-white dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor dark:border-borderDark p-6">
             <Text className="text-xl font-urbanist-bold text-black dark:text-white mb-1">
               Are you sure?
             </Text>
@@ -679,7 +671,7 @@ export default function Home() {
             </Text>
             <View className="flex-row justify-end">
               <TouchableOpacity
-                className="px-4 mx-1 py-2 border border-borderColor rounded-md dark:bg-backgroundDark"
+                className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
                 onPress={() => setIsDeleteDialogOpen(false)}
               >
                 <Text className="text-black dark:text-white font-urbanist-semibold">

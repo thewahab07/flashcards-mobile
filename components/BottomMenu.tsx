@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, Modal, TouchableOpacity } from "react-native";
-import { usePathname, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useWords } from "@/app/context/globalContext";
 import { HomeIcon, Plus, Settings } from "lucide-react-native";
+import { useTheme } from "@/app/context/themeContext";
 
 export default function BottomMenu() {
-  const { addWord, isDarkMode, activeWho } = useWords();
+  const { colorScheme } = useTheme();
+  const isDarkMode = colorScheme === "dark";
+  const { addWord, activeWho } = useWords();
   const [newWord, setNewWord] = useState("");
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
@@ -26,7 +29,7 @@ export default function BottomMenu() {
     setIsModalVisible(false);
   };
   return (
-    <View className="flex-row justify-between dark:bg-backgroundDark dark:text-white bg-background text-black border-t border-borderColor absolute bottom-0 w-full py-2">
+    <View className="flex-row justify-between dark:bg-backgroundDark dark:text-white bg-background text-black border-t border-borderColor dark:border-borderDark absolute bottom-0 w-full py-2">
       <View className="justify-center items-center ml-4">
         <TouchableOpacity
           onPress={() => {
@@ -34,9 +37,12 @@ export default function BottomMenu() {
           }}
           className="px-2 py-3 justify-center items-center flex-row"
         >
-          <HomeIcon size={28} color={activeWho === 0 ? "#7c4dff" : "black"} />
+          <HomeIcon
+            size={28}
+            color={activeWho === 0 ? "#7c4dff" : isDarkMode ? "white" : "black"}
+          />
           {activeWho === 0 ? (
-            <Text className="text-lg text-primary dark:text-white ml-1 font-urbanist-bold">
+            <Text className="text-lg text-primary ml-1 font-urbanist-bold">
               Home
             </Text>
           ) : (
@@ -48,9 +54,9 @@ export default function BottomMenu() {
         <View className="justify-center items-center rounded-full -mt-8">
           <TouchableOpacity
             onPress={() => setIsModalVisible(true)}
-            className="justify-center items-center p-4 rounded-full bg-primary dark:bg-[#171717]"
+            className="justify-center items-center p-4 rounded-full bg-primary"
           >
-            <Plus size={28} color={isDarkMode ? "black" : "white"} />
+            <Plus size={28} color="white" />
           </TouchableOpacity>
         </View>
       </View>
@@ -61,9 +67,12 @@ export default function BottomMenu() {
           }}
           className="px-2 py-3 justify-center items-center flex-row"
         >
-          <Settings size={28} color={activeWho === 1 ? "#7c4dff" : "black"} />
+          <Settings
+            size={28}
+            color={activeWho === 1 ? "#7c4dff" : isDarkMode ? "white" : "black"}
+          />
           {activeWho === 1 ? (
-            <Text className="text-xl text-primary dark:text-white ml-1 font-urbanist-bold">
+            <Text className="text-xl text-primary ml-1 font-urbanist-bold">
               Settings
             </Text>
           ) : (
@@ -78,7 +87,7 @@ export default function BottomMenu() {
             <TextInput
               placeholder="Enter word"
               placeholderTextColor="#888"
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white font-urbanist-medium"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor dark:border-borderDark focus:border-primary text-black dark:text-white font-urbanist-medium"
               value={newWord}
               onChangeText={setNewWord}
             />
@@ -86,7 +95,7 @@ export default function BottomMenu() {
               placeholder="Enter definition"
               placeholderTextColor="#888"
               style={{ textAlignVertical: "top" }}
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary h-24 text-black dark:text-white font-urbanist-medium"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor dark:border-borderDark focus:border-primary h-24 text-black dark:text-white font-urbanist-medium"
               multiline
               value={newDefinition}
               onChangeText={setNewDefinition}
@@ -94,22 +103,22 @@ export default function BottomMenu() {
             <TextInput
               placeholder="Enter tags (comma separated)"
               placeholderTextColor="#888"
-              className="p-[10px] rounded-lg mb-3 border-b border-borderColor focus:border-primary text-black dark:text-white font-urbanist-medium"
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor dark:border-borderDark focus:border-primary text-black dark:text-white font-urbanist-medium"
               value={tagValue}
               onChangeText={setTagValue}
             />
 
             <TouchableOpacity
-              className="bg-primary dark:bg-background p-3 rounded-lg items-center mb-2"
+              className="bg-primary p-3 rounded-lg items-center mb-2"
               onPress={handleAddWord}
             >
-              <Text className="text-white dark:text-black font-urbanist-semibold">
+              <Text className="text-white font-urbanist-semibold">
                 Add Word
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="border border-borderColor p-3 rounded-lg items-center"
+              className="border border-borderColor dark:border-borderDark p-3 rounded-lg items-center"
               onPress={() => setIsModalVisible(false)}
             >
               <Text className="text-black dark:text-white font-urbanist-semibold">

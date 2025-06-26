@@ -2,9 +2,12 @@ import { Download, Upload } from "lucide-react-native";
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useWords } from "../context/globalContext";
+import { useTheme } from "../context/themeContext";
 
 const ImportExport = () => {
-  const { exportWords, importWords, isDarkMode } = useWords();
+  const { exportWords, importWords } = useWords();
+  const { colorScheme } = useTheme();
+  const isDarkMode = colorScheme === "dark";
 
   return (
     <View className="w-full h-full px-6">
@@ -27,7 +30,7 @@ const ImportExport = () => {
           onPress={() => {
             importWords();
           }}
-          className="w-full border-y border-borderColor shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full border-y border-borderColor dark:border-borderDark shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
         >
           <View className="flex-row items-center">
             <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
