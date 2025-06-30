@@ -2,7 +2,7 @@
   "expo": {
     "name": "Flash",
     "slug": "flashcards",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -65,7 +65,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9e4ed585-58db-4f35-96af-c2d821c78cec"
+        "projectId": "61bc47ba-079d-4195-a00b-983b243226a1"
       }
     }
   }

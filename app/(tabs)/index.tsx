@@ -53,11 +53,13 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 Notifications.addNotificationResponseReceivedListener(async (response) => {
   const url = response.notification.request.content.data?.url;
-  if (url) {
+  if (typeof url === "string") {
     await Linking.openURL(url);
   }
 });
@@ -336,12 +338,12 @@ export default function Home() {
       renderType === "random"
         ? shuffleArray(words)
         : renderType === "dateAsc"
-        ? words
-        : renderType === "dateDes"
-        ? [...words].reverse()
-        : renderType === "marked"
-        ? words.filter((word) => word.isMarked)
-        : words;
+          ? words
+          : renderType === "dateDes"
+            ? [...words].reverse()
+            : renderType === "marked"
+              ? words.filter((word) => word.isMarked)
+              : words;
     setDisplayedWords(newDisplayedWords);
 
     // Only update the URL params if we have words to display
