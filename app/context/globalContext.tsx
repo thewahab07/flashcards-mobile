@@ -52,42 +52,6 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
     }
     loadSavedWords();
   }, []);
-
-  //   useEffect(() => {
-  //     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-
-  //     const applyTheme = async () => {
-  //       const storedTheme = await AsyncStorage.getItem("theme");
-
-  //       if (storedTheme === "dark") {
-  //         document.documentElement.classList.add("dark");
-  //         setIsDarkMode(true);
-  //         setIsSystem(false);
-  //       } else if (storedTheme === "light") {
-  //         document.documentElement.classList.remove("dark");
-  //         setIsDarkMode(false);
-  //         setIsSystem(false);
-  //       } else {
-  //         const isSystemDark = systemPrefersDark.matches;
-  //         document.documentElement.classList.toggle("dark", isSystemDark);
-  //         setIsDarkMode(isSystemDark);
-  //         setIsSystem(true);
-  //       }
-  //     };
-  //     applyTheme();
-  //     const systemThemeChangeHandler = (e: MediaQueryListEvent) => {
-  //       if (isSystem) {
-  //         document.documentElement.classList.toggle("dark", e.matches);
-  //         setIsDarkMode(e.matches);
-  //       }
-  //     };
-
-  //     systemPrefersDark.addEventListener("change", systemThemeChangeHandler);
-
-  //     return () => {
-  //       systemPrefersDark.removeEventListener("change", systemThemeChangeHandler);
-  //     };
-  //   }, [isSystem]);
   const addWord = (
     newWord: string,
     newDefinition: string,
