@@ -27,7 +27,6 @@ import { toast } from "sonner-native";
 import { Bookmark, Check, Filter, SortAsc, Trash } from "lucide-react-native";
 import * as Notifications from "expo-notifications";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Linking from "expo-linking";
 interface WordItem {
   word: string;
   definition: string;
@@ -36,17 +35,6 @@ interface WordItem {
   isMarked: boolean;
 }
 const { height } = Dimensions.get("window");
-Linking.addEventListener("url", async (event) => {
-  if (event.url.startsWith("myapp://word/")) {
-    const wordId = event.url.split("/").pop();
-    if (wordId) {
-      await AsyncStorage.setItem("notificationWordId", wordId);
-      //console.log("Stored!");
-
-      // The navigation will happen in your component using this stored value Stoooooooooooooop!!!!
-    }
-  }
-});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -56,12 +44,6 @@ Notifications.setNotificationHandler({
     shouldShowBanner: true,
     shouldShowList: true,
   }),
-});
-Notifications.addNotificationResponseReceivedListener(async (response) => {
-  const url = response.notification.request.content.data?.url;
-  if (typeof url === "string") {
-    await Linking.openURL(url);
-  }
 });
 export default function Home() {
   const [fontsLoaded] = useFonts({
@@ -91,33 +73,51 @@ export default function Home() {
     [key: number]: boolean;
   }>({});
   const scrollViewRef = useRef<ScrollView>(null);
-  const openedFromNotificationRef = useRef(false);
-  const isFirstRun = useRef(true);
   const params = useLocalSearchParams();
-  const hasScrolledAfterNotification = useRef(false);
-  const pendingWordIdScroll = useRef<number | null>(null);
   useEffect(() => {
-    if (
-      params.wordId &&
-      displayedWords.length > 0 &&
-      !hasScrolledAfterNotification.current
-    ) {
-      const wordId = Number(params.wordId);
-      scrollToWord(wordId);
-    }
-  }, [params.wordId, displayedWords]);
-  useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      async (response) => {
-        const url = response.notification.request.content.data?.url;
-        if (url) {
-          openedFromNotificationRef.current = true; // <-- Mark that we opened via notification
+    const tempId = displayedWords[0]?.id;
+    scrollToWord(tempId);
+
+    const setupNotificationHandling = async () => {
+      const lastNotificationResponse =
+        await Notifications.getLastNotificationResponseAsync();
+      if (lastNotificationResponse) {
+        const wordId =
+          lastNotificationResponse.notification.request.content.data?.wordId;
+        if (wordId && displayedWords.length > 0) {
+          console.log(
+            "App launched from notification, scrolling to word ID:",
+            wordId
+          );
+          scrollToWord(Number(wordId));
         }
       }
-    );
 
-    return () => subscription.remove();
-  }, []);
+      const subscription =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          const wordId = response.notification.request.content.data?.wordId;
+          if (wordId) {
+            console.log(
+              "Notification tapped while app opened, scrolling to word ID:",
+              wordId
+            );
+            scrollToWord(Number(wordId));
+            console.log("Done.");
+          }
+        });
+
+      return () => subscription.remove();
+    };
+    if (displayedWords.length > 0) {
+      setupNotificationHandling();
+    }
+  }, [displayedWords]); // Include displayedWords as dependency
+  // useEffect(() => {
+  //   if (params.wordId && displayedWords.length > 0) {
+  //     const wordId = Number(params.wordId);
+  //     scrollToWord(wordId);
+  //   }
+  // }, [params.wordId, displayedWords]);
   useEffect(() => {
     const loadWords = async () => {
       const storedWords = await AsyncStorage.getItem("words");
@@ -138,11 +138,6 @@ export default function Home() {
     loadWords();
   }, []);
   useEffect(() => {
-    if (isFirstRun.current || openedFromNotificationRef.current) {
-      isFirstRun.current = false;
-      openedFromNotificationRef.current = false;
-      return;
-    }
     const setupNotifications = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
@@ -157,15 +152,17 @@ export default function Home() {
       const localTime = new Date(
         now.getTime() + now.getTimezoneOffset() * 60000
       ); // Get local time
-      const startOfDay = new Date(localTime.setHours(9, 0, 0, 0)); // 9:00 AM local time
+      const startOfDay = new Date(localTime.setHours(5, 0, 0, 0)); // 5r:00 AM local time
       const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
 
       console.log("Scheduling notifications for selected words...");
 
       // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 24; i++) {
-        const triggerTime = new Date(startOfDay.getTime() + i * 30 * 60 * 1000);
+      for (let i = 0; i < 1440; i++) {
+        const triggerTime = new Date(
+          startOfDay.getTime() + i * 0.5 * 60 * 1000
+        );
         if (triggerTime > now && triggerTime <= endOfDay) {
           fixedTimes.push(triggerTime);
         }
@@ -209,83 +206,51 @@ export default function Home() {
   }, [words]); // Re-run when the words list changes (e.g., words are deleted)
 
   const scrollToWord = (wordId: number) => {
+    console.log("Attempting to scroll to word ID:", wordId);
     const index = displayedWords.findIndex((w) => w.id === wordId);
+    console.log(
+      "Found word at index:",
+      index,
+      "in displayedWords of length:",
+      displayedWords.length
+    );
+
     if (index !== -1 && scrollViewRef.current) {
       scrollViewRef.current.scrollTo({
         y: index * height,
         animated: true,
       });
       setCurrentIndex(index);
-      // Reset the pending word ID after scrolling
-      pendingWordIdScroll.current = null;
 
-      // Give time for the scroll to complete before allowing other scrolls
+      // Also update the URL params to reflect the current word
+      router.setParams({ wordId: wordId.toString() });
+
+      console.log("Scrolled to word:", displayedWords[index]?.word);
+    } else {
+      console.log("Word not found or scroll ref not available");
     }
   };
+
   useEffect(() => {
-    const handleNotifications = async () => {
-      const storedId = await AsyncStorage.getItem("notificationWordId");
-      if (storedId && displayedWords.length > 0) {
-        const wordId = Number(storedId);
-        pendingWordIdScroll.current = wordId;
-        await AsyncStorage.removeItem("notificationWordId");
-        hasScrolledAfterNotification.current = true;
+    // First, update the displayed words based on the render type
+    const newDisplayedWords =
+      renderType === "random"
+        ? shuffleArray(words)
+        : renderType === "dateAsc"
+          ? words
+          : renderType === "dateDes"
+            ? [...words].reverse()
+            : renderType === "marked"
+              ? words.filter((word) => word.isMarked)
+              : words;
+    setDisplayedWords(newDisplayedWords);
 
-        // Delay the scroll to make sure all layout has completed
-        setTimeout(() => {
-          scrollToWord(wordId);
-        }, 300);
-      }
-    };
-
-    if (displayedWords.length > 0) {
-      handleNotifications();
+    // Only update the URL params if we have words to display
+    if (newDisplayedWords.length > 0) {
+      // Just update the parameter, don't replace the whole route
+      router.setParams({ wordId: newDisplayedWords[0].id.toString() });
     }
-  }, [displayedWords]);
-  useEffect(() => {
-    // Listen for deep links
-    const linkSubscription = Linking.addEventListener("url", (event) => {
-      if (event.url.startsWith("myapp://word/")) {
-        const wordId = event.url.split("/").pop();
-        if (wordId) {
-          const numWordId = Number(wordId);
-          pendingWordIdScroll.current = numWordId;
-
-          // Only scroll if we have words to display
-          if (displayedWords.length > 0) {
-            hasScrolledAfterNotification.current = true;
-            scrollToWord(numWordId);
-          }
-        }
-      }
-    });
-
-    // Listen for notification responses
-    const notificationSubscription =
-      Notifications.addNotificationResponseReceivedListener(
-        async (response) => {
-          const url = response.notification.request.content.data?.url;
-          if (url && typeof url === "string") {
-            // Instead of opening the URL directly, store the word ID
-            const wordId = url.split("/").pop();
-            if (wordId) {
-              await AsyncStorage.setItem("notificationWordId", wordId);
-              hasScrolledAfterNotification.current = true;
-
-              // We'll handle the actual navigation in the useEffect above
-              if (displayedWords.length > 0) {
-                scrollToWord(Number(wordId));
-              }
-            }
-          }
-        }
-      );
-
-    return () => {
-      linkSubscription.remove();
-      notificationSubscription.remove();
-    };
-  }, [displayedWords]);
+  }, [renderType, words]);
 
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
@@ -331,27 +296,6 @@ export default function Home() {
   const shuffleArray = (arr: Array<WordItem>) => {
     return [...arr].sort(() => Math.random() - 0.5);
   };
-
-  useEffect(() => {
-    // First, update the displayed words based on the render type
-    const newDisplayedWords =
-      renderType === "random"
-        ? shuffleArray(words)
-        : renderType === "dateAsc"
-          ? words
-          : renderType === "dateDes"
-            ? [...words].reverse()
-            : renderType === "marked"
-              ? words.filter((word) => word.isMarked)
-              : words;
-    setDisplayedWords(newDisplayedWords);
-
-    // Only update the URL params if we have words to display
-    if (newDisplayedWords.length > 0) {
-      // Just update the parameter, don't replace the whole route
-      router.setParams({ wordId: newDisplayedWords[0].id.toString() });
-    }
-  }, [renderType, words]);
   return (
     <View className="w-full h-screen">
       {words.length == 0 ? (
@@ -368,6 +312,7 @@ export default function Home() {
         </View>
       ) : (
         <ScrollView
+          ref={scrollViewRef}
           pagingEnabled
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 0 }}
