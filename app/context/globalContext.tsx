@@ -31,6 +31,12 @@ interface WordsContextType {
   setWordsChange: React.Dispatch<React.SetStateAction<boolean>>;
   activeWho: number;
   setActiveWho: React.Dispatch<React.SetStateAction<number>>;
+  startTime: number;
+  setStartTime: React.Dispatch<React.SetStateAction<number>>;
+  endTime: number;
+  setEndTime: React.Dispatch<React.SetStateAction<number>>;
+  interval: number;
+  setInterval: React.Dispatch<React.SetStateAction<number>>;
 }
 const WordsContext = createContext<WordsContextType | undefined>(undefined);
 
@@ -41,6 +47,9 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [isSystem, setIsSystem] = useState(true);
   const [notificationPermission, setNotificationPermission] = useState(false);
   const [activeWho, setActiveWho] = useState(0);
+  const [startTime, setStartTime] = useState(9);
+  const [endTime, setEndTime] = useState(21);
+  const [interval, setInterval] = useState(40);
 
   useEffect(() => {
     async function loadSavedWords() {
@@ -183,6 +192,12 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         wordsChange,
         activeWho,
         setActiveWho,
+        startTime,
+        setStartTime,
+        endTime,
+        setEndTime,
+        interval,
+        setInterval,
       }}
     >
       {children}

@@ -58,8 +58,16 @@ export default function Home() {
     Urbanist_900Black,
     Sevillana_400Regular,
   });
-  const { words, setWords, displayedWords, setDisplayedWords, toggleBookmark } =
-    useWords();
+  const {
+    words,
+    setWords,
+    displayedWords,
+    setDisplayedWords,
+    toggleBookmark,
+    startTime,
+    endTime,
+    interval,
+  } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -85,10 +93,10 @@ export default function Home() {
         const wordId =
           lastNotificationResponse.notification.request.content.data?.wordId;
         if (wordId && displayedWords.length > 0) {
-          console.log(
-            "App launched from notification, scrolling to word ID:",
-            wordId
-          );
+          // console.log(
+          //   "App launched from notification, scrolling to word ID:",
+          //   wordId
+          // );
           scrollToWord(Number(wordId));
         }
       }
@@ -97,12 +105,12 @@ export default function Home() {
         Notifications.addNotificationResponseReceivedListener((response) => {
           const wordId = response.notification.request.content.data?.wordId;
           if (wordId) {
-            console.log(
-              "Notification tapped while app opened, scrolling to word ID:",
-              wordId
-            );
+            //console.log(
+            //  "Notification tapped while app opened, scrolling to word ID:",
+            // wordId
+            //);
             scrollToWord(Number(wordId));
-            console.log("Done.");
+            //console.log("Done.");
           }
         });
 
@@ -149,29 +157,28 @@ export default function Home() {
 
       const shuffled = shuffleArray(words); // Shuffle the words for randomness
       const now = new Date();
-      const localTime = new Date(
-        now.getTime() + now.getTimezoneOffset() * 60000
-      ); // Get local time
-      const startOfDay = new Date(localTime.setHours(5, 0, 0, 0)); // 5r:00 AM local time
-      const endOfDay = new Date(localTime.setHours(21, 0, 0, 0)); // 9:00 PM local time
+      const start = new Date();
+      start.setHours(startTime, 0, 0, 0);
 
-      console.log("Scheduling notifications for selected words...");
+      const end = new Date();
+      end.setHours(endTime, 0, 0, 0);
 
-      // Fixed times array: every 40 minutes between 9 AM and 9 PM
       const fixedTimes = [];
-      for (let i = 0; i < 1440; i++) {
-        const triggerTime = new Date(
-          startOfDay.getTime() + i * 0.5 * 60 * 1000
-        );
-        if (triggerTime > now && triggerTime <= endOfDay) {
+      const intervalMs = interval * 60 * 1000; // first number is minutes
+
+      for (let t = start.getTime(); t <= end.getTime(); t += intervalMs) {
+        const triggerTime = new Date(t);
+        if (triggerTime > now) {
           fixedTimes.push(triggerTime);
         }
       }
+      //console.log("Fixed times to schedule:", fixedTimes.length);
 
       // Loop through the fixed times and schedule notifications
       for (let i = 0; i < fixedTimes.length; i++) {
         const triggerTime = fixedTimes[i];
         //console.log(triggerTime);
+        // console.log("lol again");
 
         // Ensure we have a word to schedule
         const wordIndex = i % shuffled.length; // Get word based on fixed time
@@ -194,26 +201,25 @@ export default function Home() {
             },
           },
           trigger: {
-            type: "date",
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: triggerTime,
-            allowWhileIdle: true,
-          } as unknown as Notifications.NotificationTriggerInput,
+          },
         });
       }
     };
 
     setupNotifications();
-  }, [words]); // Re-run when the words list changes (e.g., words are deleted)
+  }, [words, startTime, endTime, interval]);
 
   const scrollToWord = (wordId: number) => {
-    console.log("Attempting to scroll to word ID:", wordId);
+    //console.log("Attempting to scroll to word ID:", wordId);
     const index = displayedWords.findIndex((w) => w.id === wordId);
-    console.log(
-      "Found word at index:",
-      index,
-      "in displayedWords of length:",
-      displayedWords.length
-    );
+    //console.log(
+    //  "Found word at index:",
+    //  index,
+    //  "in displayedWords of length:",
+    //  displayedWords.length
+    //);
 
     if (index !== -1 && scrollViewRef.current) {
       scrollViewRef.current.scrollTo({
@@ -225,9 +231,9 @@ export default function Home() {
       // Also update the URL params to reflect the current word
       router.setParams({ wordId: wordId.toString() });
 
-      console.log("Scrolled to word:", displayedWords[index]?.word);
+      //console.log("Scrolled to word:", displayedWords[index]?.word);
     } else {
-      console.log("Word not found or scroll ref not available");
+      //console.log("Word not found or scroll ref not available");
     }
   };
 
