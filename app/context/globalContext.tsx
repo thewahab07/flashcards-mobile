@@ -23,12 +23,6 @@ interface WordsContextType {
   toggleBookmark: (wordId: number) => void;
   exportWords: () => void;
   importWords: () => void;
-  notificationPermission: boolean;
-  setNotificationPermission: React.Dispatch<React.SetStateAction<boolean>>;
-  isSystem: boolean;
-  setIsSystem: React.Dispatch<React.SetStateAction<boolean>>;
-  wordsChange: boolean;
-  setWordsChange: React.Dispatch<React.SetStateAction<boolean>>;
   activeWho: number;
   setActiveWho: React.Dispatch<React.SetStateAction<number>>;
   startTime: number;
@@ -43,9 +37,6 @@ const WordsContext = createContext<WordsContextType | undefined>(undefined);
 export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [words, setWords] = useState<Word[]>([]);
   const [displayedWords, setDisplayedWords] = useState<Word[]>([]);
-  const [wordsChange, setWordsChange] = useState(true);
-  const [isSystem, setIsSystem] = useState(true);
-  const [notificationPermission, setNotificationPermission] = useState(false);
   const [activeWho, setActiveWho] = useState(0);
   const [startTime, setStartTime] = useState(9);
   const [endTime, setEndTime] = useState(21);
@@ -80,7 +71,6 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
       setWords(updatedWords);
       setDisplayedWords(updatedWords);
       AsyncStorage.setItem("words", JSON.stringify(updatedWords));
-      setWordsChange(!wordsChange);
 
       toast.success("Another word enters the Hall of Knowledge! 🏛️");
     }
@@ -182,14 +172,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         setDisplayedWords,
         addWord,
         toggleBookmark,
-        isSystem,
-        setIsSystem,
         exportWords,
         importWords,
-        notificationPermission,
-        setNotificationPermission,
-        setWordsChange,
-        wordsChange,
         activeWho,
         setActiveWho,
         startTime,

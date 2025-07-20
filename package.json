@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/noto-sans-arabic": "^0.4.0",
     "@expo-google-fonts/sevillana": "^0.4.0",
     "@expo-google-fonts/urbanist": "^0.4.1",
     "@expo/vector-icons": "^14.1.0",

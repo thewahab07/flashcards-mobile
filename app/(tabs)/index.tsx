@@ -4,9 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Dimensions,
-  Modal,
 } from "react-native";
 import { useFonts } from "@expo-google-fonts/urbanist";
 import { Sevillana_400Regular } from "@expo-google-fonts/sevillana";
@@ -21,12 +19,12 @@ import {
   Urbanist_800ExtraBold,
   Urbanist_900Black,
 } from "@expo-google-fonts/urbanist";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useWords } from "../context/globalContext";
-import { toast } from "sonner-native";
-import { Bookmark, Check, Filter, SortAsc, Trash } from "lucide-react-native";
+import { Bookmark } from "lucide-react-native";
 import * as Notifications from "expo-notifications";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import DeleteButton from "@/components/DeleteButton";
+import TopBar from "@/components/TopBar";
 interface WordItem {
   word: string;
   definition: string;
@@ -60,28 +58,18 @@ export default function Home() {
   });
   const {
     words,
-    setWords,
     displayedWords,
-    setDisplayedWords,
     toggleBookmark,
     startTime,
     endTime,
     interval,
   } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
-  const [isSortDialog, setIsSortDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [renderType, setRenderType] = useState("dateAsc");
-  const uniqueTags = Array.from(
-    new Set(words.flatMap((word) => word.tags.map((tag) => tag.toLowerCase())))
-  );
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
   const scrollViewRef = useRef<ScrollView>(null);
-  const params = useLocalSearchParams();
+
   useEffect(() => {
     const tempId = displayedWords[0]?.id;
     scrollToWord(tempId);
@@ -121,30 +109,24 @@ export default function Home() {
     }
   }, [displayedWords]); // Include displayedWords as dependency
   // useEffect(() => {
-  //   if (params.wordId && displayedWords.length > 0) {
-  //     const wordId = Number(params.wordId);
-  //     scrollToWord(wordId);
-  //   }
-  // }, [params.wordId, displayedWords]);
-  useEffect(() => {
-    const loadWords = async () => {
-      const storedWords = await AsyncStorage.getItem("words");
-      if (storedWords) {
-        const parsedWords = JSON.parse(storedWords).map(
-          (word: WordItem, index: number) => ({
-            word: word.word,
-            definition: word.definition,
-            tags: word.tags,
-            id: word.id,
-            index,
-          })
-        );
-        setWords(parsedWords);
-        setDisplayedWords(parsedWords);
-      }
-    };
-    loadWords();
-  }, []);
+  //   const loadWords = async () => {
+  //     const storedWords = await AsyncStorage.getItem("words");
+  //     if (storedWords) {
+  //       const parsedWords = JSON.parse(storedWords).map(
+  //         (word: WordItem, index: number) => ({
+  //           word: word.word,
+  //           definition: word.definition,
+  //           tags: word.tags,
+  //           id: word.id,
+  //           index,
+  //         })
+  //       );
+  //       setWords(parsedWords);
+  //       setDisplayedWords(parsedWords);
+  //     }
+  //   };
+  //   loadWords();
+  // }, []);
   useEffect(() => {
     const setupNotifications = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -178,7 +160,6 @@ export default function Home() {
       for (let i = 0; i < fixedTimes.length; i++) {
         const triggerTime = fixedTimes[i];
         //console.log(triggerTime);
-        // console.log("lol again");
 
         // Ensure we have a word to schedule
         const wordIndex = i % shuffled.length; // Get word based on fixed time
@@ -237,67 +218,11 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    // First, update the displayed words based on the render type
-    const newDisplayedWords =
-      renderType === "random"
-        ? shuffleArray(words)
-        : renderType === "dateAsc"
-          ? words
-          : renderType === "dateDes"
-            ? [...words].reverse()
-            : renderType === "marked"
-              ? words.filter((word) => word.isMarked)
-              : words;
-    setDisplayedWords(newDisplayedWords);
-
-    // Only update the URL params if we have words to display
-    if (newDisplayedWords.length > 0) {
-      // Just update the parameter, don't replace the whole route
-      router.setParams({ wordId: newDisplayedWords[0].id.toString() });
-    }
-  }, [renderType, words]);
-
   const toggleDefinition = (index: number) => {
     setVisibleDefinitions((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
-  };
-  const deleteWord = (id: number) => {
-    if (words.length === 0) {
-      toast.error("There's nothing to delete! 🚫");
-      setIsDeleteDialogOpen(false);
-      return;
-    }
-
-    const updatedWords = words.filter((word) => word.id !== id);
-    setWords(updatedWords);
-    setDisplayedWords(updatedWords);
-    AsyncStorage.setItem("words", JSON.stringify(updatedWords));
-
-    toast.error("Poof! That word just vanished into the void. 🚀");
-    setIsDeleteDialogOpen(false);
-  };
-  const handleSearch = () => {
-    if (searchQuery.trim() === "") {
-      setDisplayedWords(words);
-      return;
-    }
-    const searchTags = searchQuery
-      .split(",")
-      .map((tag) => tag.trim().toLowerCase())
-      .filter((tag) => tag !== "");
-
-    const filteredWords =
-      searchQuery.trim() === ""
-        ? words
-        : words.filter((word) =>
-            word.tags.some((tag) => searchTags.includes(tag.toLowerCase()))
-          );
-
-    setDisplayedWords(filteredWords);
-    setSearchQuery("");
   };
   const shuffleArray = (arr: Array<WordItem>) => {
     return [...arr].sort(() => Math.random() - 0.5);
@@ -374,21 +299,13 @@ export default function Home() {
                         </View>
                       </View>
                     ) : (
-                      <Text className="text-5xl font-urbanist-bold text-primary">
+                      <Text className="text-5xl font-urbanist-bold text-primary leading-normal ">
                         {item.word}
                       </Text>
                     )}
                   </TouchableOpacity>
                   <View className="w-full h-[15%] rounded-b-3xl border-t border-borderColor dark:border-borderDark items-center justify-around flex-row">
-                    <View>
-                      <Trash
-                        onPress={() => {
-                          setIsDeleteDialogOpen(true);
-                        }}
-                        size={22}
-                        color="#9ca3af"
-                      />
-                    </View>
+                    <DeleteButton currentIndex={currentIndex} />
                     <View>
                       <Text className="text-primary font-urbanist-regular">
                         Tap to reveal 👆
@@ -409,242 +326,7 @@ export default function Home() {
           ))}
         </ScrollView>
       )}
-
-      <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor dark:border-borderDark absolute top-0 w-full px-6 h-20">
-        <View>
-          <Text className="text-3xl text-primary font-sevillana-regular">
-            Flash
-          </Text>
-        </View>
-        <View className="flex-row justify-around items-center w-1/2">
-          <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
-            {displayedWords.length === 0
-              ? "0 / 0"
-              : `${Math.min(currentIndex + 1, displayedWords.length)}/${
-                  displayedWords.length
-                }`}
-          </Text>
-          <View>
-            <Filter
-              onPress={() => {
-                setIsSearchDialogOpen(true);
-              }}
-              size={22}
-              color="#9ca3af"
-            />
-          </View>
-          <View className="my-4">
-            <SortAsc
-              onPress={() => {
-                setIsSortDialog(true);
-              }}
-              size={22}
-              color="#9ca3af"
-            />
-          </View>
-          {/* {seachReset && (
-            <TouchableOpacity
-              onPress={() => {
-                setDisplayedWords(words);
-                setSearchQuery("");
-                setSeachReset(false);
-              }}
-            >
-              <SearchX size={22} color={isDarkMode ? "white" : "#9ca3af"} />
-            </TouchableOpacity>
-          )} */}
-        </View>
-      </View>
-      <Modal
-        visible={isSearchDialogOpen}
-        animationType="fade"
-        transparent={true}
-      >
-        <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
-          <View className="bg-background dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor dark:border-borderDark p-6">
-            <View>
-              <Text className="text-xl pl-1 text-black dark:text-white font-urbanist-bold">
-                Filter by Tags
-              </Text>
-              <TextInput
-                placeholder="Enter tags (comma separated)"
-                placeholderTextColor="#888"
-                className="my-2 pl-1 py-2 rounded-lg border-b border-borderColor dark:border-borderDark text-black dark:text-white font-urbanist-medium"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <View className="flex-row flex-wrap">
-                {uniqueTags.map((tag, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() =>
-                      setSearchQuery((prev) => (prev ? `${prev}, ${tag}` : tag))
-                    }
-                  >
-                    <View className="text-white bg-primary mt-2 mx-1 px-3 py-[1px] pb-[2px] rounded-xl items-center justify-center">
-                      <Text className="text-white dark:text-white text-sm text-center font-urbanist-medium">
-                        {tag}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            <View className="flex-row justify-end pt-2">
-              <TouchableOpacity
-                className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
-                onPress={() => {
-                  setIsSearchDialogOpen(false);
-                  setDisplayedWords(words);
-                  setSearchQuery("");
-                }}
-              >
-                <Text className="text-black dark:text-white font-urbanist-semibold">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleSearch();
-                  setIsSearchDialogOpen(false);
-                }}
-                className="px-4 mx-1 py-2 bg-primary rounded-md"
-              >
-                <Text className="text-white font-urbanist-semibold">Apply</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-      <Modal visible={isSortDialog} animationType="fade" transparent={true}>
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setIsSortDialog(false)}
-          className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]"
-        >
-          <View className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor dark:border-borderDark p-4 bottom-0 absolute">
-            <Text className="text-2xl pl-2 py-2 text-black dark:text-white font-urbanist-bold">
-              Sort by
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setRenderType("dateAsc");
-                setIsSortDialog(false);
-              }}
-              className="w-full"
-            >
-              <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
-                  Date added (ascending)
-                </Text>
-                {renderType === "dateAsc" && (
-                  <View className="items-center justify-center">
-                    <Check size={22} color="#9ca3af" />
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setRenderType("dateDes");
-                setIsSortDialog(false);
-              }}
-              className="w-full border-y border-borderColor dark:border-borderDark"
-            >
-              <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
-                  Date added (descending)
-                </Text>
-                {renderType === "dateDes" && (
-                  <View className="items-center justify-center">
-                    <Check size={22} color="#9ca3af" />
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setRenderType("random");
-                setIsSortDialog(false);
-              }}
-              className="w-full border-b border-borderColor dark:border-borderDark"
-            >
-              <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
-                  Random
-                </Text>
-                {renderType === "random" && (
-                  <View className="items-center justify-center">
-                    <Check size={22} color="#9ca3af" />
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setRenderType("marked");
-                setIsSortDialog(false);
-              }}
-              className="w-full"
-            >
-              <View className="flex-row justify-between items-center w-full px-2 py-4">
-                <Text className="text-xl text-black dark:text-white font-urbanist-medium">
-                  Bookmarked
-                </Text>
-                {renderType === "marked" && (
-                  <View className="items-center justify-center">
-                    <Check size={22} color="#9ca3af" />
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="px-4 mx-1 py-2 mt-2 border border-borderColor dark:border-borderDark rounded-md bg-primary justify-center items-center"
-              onPress={() => setIsSortDialog(false)}
-            >
-              <Text className="text-white text-xl dark:text-white font-urbanist-semibold">
-                Close
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-      <Modal
-        visible={isDeleteDialogOpen}
-        animationType="fade"
-        transparent={true}
-      >
-        <View className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]">
-          <View className="bg-white dark:bg-backgroundDark w-[90%] self-center rounded-lg border border-borderColor dark:border-borderDark p-6">
-            <Text className="text-xl font-urbanist-bold text-black dark:text-white mb-1">
-              Are you sure?
-            </Text>
-            <Text className="text-base text-gray-600 dark:text-gray-300 mb-6 font-urbanist-medium">
-              Do you really want to delete this word?
-            </Text>
-            <View className="flex-row justify-end">
-              <TouchableOpacity
-                className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
-                onPress={() => setIsDeleteDialogOpen(false)}
-              >
-                <Text className="text-black dark:text-white font-urbanist-semibold">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="px-4 mx-1 py-2 bg-red-600 rounded-md"
-                onPress={() => {
-                  deleteWord(displayedWords[currentIndex]?.id);
-                }}
-              >
-                <Text className="text-white font-urbanist-semibold">
-                  Delete
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <TopBar currentIndex={currentIndex} />
     </View>
   );
 }
