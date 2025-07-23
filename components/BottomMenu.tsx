@@ -1,20 +1,45 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Modal, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { useWords } from "@/app/context/globalContext";
+import { useWords } from "@/context/globalContext";
 import { HomeIcon, Plus, Settings } from "lucide-react-native";
-import { useTheme } from "@/app/context/themeContext";
+import { useTheme } from "@/context/themeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { toast } from "sonner-native";
 
 export default function BottomMenu() {
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
-  const { addWord, activeWho } = useWords();
+  const { activeWho, words, setWords, setDisplayedWords } = useWords();
   const [newWord, setNewWord] = useState("");
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const router = useRouter();
+  const addWord = (
+    newWord: string,
+    newDefinition: string,
+    newTags: string[]
+  ) => {
+    if (newWord && newDefinition) {
+      const updatedWords = [
+        ...words,
+        {
+          word: newWord,
+          definition: newDefinition,
+          tags: newTags || [],
+          id: Math.random(),
+          isMarked: false,
+        },
+      ];
+      setWords(updatedWords);
+      setDisplayedWords(updatedWords);
+      AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+
+      toast.success("Another word enters the Hall of Knowledge! 🏛️");
+    }
+  };
   const handleAddWord = () => {
     const newTags = tagValue
       .split(",")

@@ -1,4 +1,4 @@
-import { useWords } from "@/app/context/globalContext";
+import { useWords } from "@/context/globalContext";
 import { Filter } from "lucide-react-native";
 import { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";

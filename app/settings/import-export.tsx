@@ -1,13 +1,113 @@
 import { Download, Upload } from "lucide-react-native";
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useWords } from "../context/globalContext";
-import { useTheme } from "../context/themeContext";
+import { useWords } from "../../context/globalContext";
+import { useTheme } from "../../context/themeContext";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { Platform, Alert, ToastAndroid } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { WordItem } from "@/types";
+import RNFS from "react-native-fs";
 
 const ImportExport = () => {
-  const { exportWords, importWords } = useWords();
+  const { words, setWords, setDisplayedWords } = useWords();
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
+
+  const exportWords = async () => {
+    try {
+      const filteredWords = words.map(({ id, ...rest }) => rest);
+      const json = JSON.stringify(filteredWords, null, 2);
+
+      let filePath = "";
+
+      if (Platform.OS === "android") {
+        // Save directly to Downloads folder
+        const fileName = "words.json";
+        filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+        await RNFS.writeFile(filePath, json, "utf8");
+
+        ToastAndroid.show("Saved to Downloads! 📁", ToastAndroid.SHORT);
+      } else {
+        // Fallback for iOS or Expo (if not fully ejected yet)
+        const fileUri = FileSystem.documentDirectory + "words.json";
+        await FileSystem.writeAsStringAsync(fileUri, json, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
+
+        await Sharing.shareAsync(fileUri);
+        Alert.alert(
+          "Exported!",
+          "Your words have been exported successfully 📁"
+        );
+      }
+
+      //console.log("Exported file path:", filePath);
+    } catch (error) {
+      //console.error("Export failed:", error);
+      Alert.alert("Error", "Failed to export words.");
+    }
+  };
+  const importWords = async () => {
+    try {
+      // Pick file
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      // Access the file info from result.assets[0]
+      const file = result.assets[0];
+
+      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+
+      let importedWords;
+      try {
+        importedWords = JSON.parse(fileContent);
+      } catch {
+        Alert.alert("Error", "Invalid JSON format! ❌");
+        return;
+      }
+
+      const updatedWords = [...words];
+
+      importedWords.forEach((importedWord: WordItem) => {
+        const { word, definition, tags = [] } = importedWord;
+        const existingIndex = updatedWords.findIndex((w) => w.word === word);
+
+        if (existingIndex !== -1) {
+          const existingWord = updatedWords[existingIndex];
+          const mergedTags = Array.from(
+            new Set([...existingWord.tags, ...tags])
+          );
+          updatedWords[existingIndex] = { ...existingWord, tags: mergedTags };
+        } else {
+          updatedWords.push({
+            word,
+            definition,
+            tags,
+            id: Math.random(), // Generate new ID
+            isMarked: false,
+          });
+        }
+      });
+
+      setWords(updatedWords);
+      setDisplayedWords(updatedWords);
+      await AsyncStorage.setItem("words", JSON.stringify(updatedWords));
+
+      Platform.OS === "android"
+        ? ToastAndroid.show("Imported successfully! 📥", ToastAndroid.SHORT)
+        : Alert.alert("Success", "Words imported! 📥");
+    } catch (error) {
+      console.error("Import failed:", error);
+      Alert.alert("Error", "Failed to import words.");
+    }
+  };
 
   return (
     <View className="w-full h-full px-6">

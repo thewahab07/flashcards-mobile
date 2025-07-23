@@ -1,8 +1,8 @@
 import { Check, Moon, Sun } from "lucide-react-native";
-import React from "react";
+import React, { JSX } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useColorScheme } from "nativewind";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../context/themeContext";
 
 const Theme = () => {
   const { theme, setTheme, colorScheme } = useTheme();

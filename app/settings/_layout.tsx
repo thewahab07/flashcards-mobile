@@ -2,7 +2,7 @@ import { Slot, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../context/themeContext";
 
 export default function SettingsLayout() {
   const router = useRouter();

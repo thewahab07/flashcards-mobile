@@ -1,4 +1,4 @@
-import { useWords } from "@/app/context/globalContext";
+import { useWords } from "@/context/globalContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Trash } from "lucide-react-native";
 import { useState } from "react";

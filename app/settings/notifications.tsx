@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../context/themeContext";
 import {
   AlarmClock,
   CircleQuestionMark,
@@ -8,8 +8,9 @@ import {
   ClockArrowUp,
 } from "lucide-react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { useWords } from "../context/globalContext";
+import { useWords } from "../../context/globalContext";
 import { toast } from "sonner-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Notifications = () => {
   const { colorScheme } = useTheme();
@@ -29,13 +30,17 @@ const Notifications = () => {
   const [showEndInfo, setShowEndInfo] = useState(false);
   const [showIntervalInfo, setShowIntervalInfo] = useState(false);
 
-  const applyChanges = () => {
+  const applyChanges = async () => {
+    await AsyncStorage.setItem("startTime", tempStart);
+    await AsyncStorage.setItem("endTime", tempEnd);
+    await AsyncStorage.setItem("interval", tempBreak);
     setStartTime(Number(tempStart));
     setEndTime(Number(tempEnd));
     setInterval(Number(tempBreak));
     setTempStart("");
     setTempEnd("");
     setTempBreak("");
+
     toast.success("Settings applied.");
   };
 

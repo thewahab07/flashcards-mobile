@@ -1,7 +1,7 @@
 import { Slot, usePathname } from "expo-router";
 import React, { useEffect } from "react";
 import { View } from "react-native";
-import { useWords } from "../context/globalContext";
+import { useWords } from "../../context/globalContext";
 
 export default function TabLayout() {
   const { setActiveWho } = useWords();

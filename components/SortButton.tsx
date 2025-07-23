@@ -1,15 +1,9 @@
-import { useWords } from "@/app/context/globalContext";
+import { useWords } from "@/context/globalContext";
 import { router } from "expo-router";
 import { Check, SortAsc } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
-interface WordItem {
-  word: string;
-  definition: string;
-  tags: Array<string>;
-  id: number;
-  isMarked: boolean;
-}
+import { WordItem } from "@/types";
 
 export default function SortButton() {
   const { words, setDisplayedWords } = useWords();

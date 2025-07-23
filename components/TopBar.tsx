@@ -1,13 +1,15 @@
 import { Text, View } from "react-native";
 import FilterButton from "./FilterButton";
 import SortButton from "./SortButton";
-import { useWords } from "@/app/context/globalContext";
+import { useWords } from "@/context/globalContext";
 type Props = {
   currentIndex: number;
 };
 
 export default function TopBar({ currentIndex }: Props) {
   const { displayedWords } = useWords();
+  const length = displayedWords?.length ?? 0;
+  const current = Math.min(currentIndex + 1, length);
 
   return (
     <View className="justify-between items-center flex-row pt-1 dark:bg-backgroundDark bg-background border-b border-borderColor dark:border-borderDark absolute top-0 w-full px-6 h-20">
@@ -16,13 +18,9 @@ export default function TopBar({ currentIndex }: Props) {
           Flash
         </Text>
       </View>
-      <View className="flex-row justify-around items-center w-1/2">
+      <View className="flex-row justify-around items-center w-[55%]">
         <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
-          {displayedWords.length === 0
-            ? "0 / 0"
-            : `${Math.min(currentIndex + 1, displayedWords.length)}/${
-                displayedWords.length
-              }`}
+          {`${current} / ${length}`}
         </Text>
         <FilterButton />
         <SortButton />

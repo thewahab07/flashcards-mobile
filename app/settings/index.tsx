@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Bell, Download, SunMoon, ChevronRight } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "../context/themeContext";
+import { useTheme } from "../../context/themeContext";
 
 export default function SettingsScreen() {
   const { colorScheme } = useTheme();

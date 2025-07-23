@@ -6,12 +6,12 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "./global.css";
 import "nativewind";
-import { WordsProvider } from "./context/globalContext";
+import { WordsProvider } from "../context/globalContext";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomMenu from "@/components/BottomMenu";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemeProvider, useTheme } from "./context/themeContext";
+import { ThemeProvider, useTheme } from "../context/themeContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
