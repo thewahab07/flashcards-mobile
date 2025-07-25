@@ -94,63 +94,56 @@ export default function Home() {
   useEffect(() => {
     const setupNotifications = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        return;
-      }
+      if (status !== "granted") return;
 
-      await Notifications.cancelAllScheduledNotificationsAsync(); // Prevent duplicates
-      if (words.length === 0) return;
+      await Notifications.cancelAllScheduledNotificationsAsync();
 
-      const shuffled = shuffleArray(words); // Shuffle the words for randomness
+      if (!words.length) return;
+
+      const shuffled = shuffleArray(words);
       const now = new Date();
-      const start = new Date();
-      start.setHours(startTime, 0, 0, 0);
+      const fixedTimes: Date[] = [];
+      const intervalMs = interval * 60 * 1000;
 
-      const end = new Date();
-      end.setHours(endTime, 0, 0, 0);
+      for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+        const start = new Date();
+        start.setDate(start.getDate() + dayOffset);
+        start.setHours(startTime, 0, 0, 0);
 
-      const fixedTimes = [];
-      const intervalMs = interval * 60 * 1000; // first number is minutes
+        const end = new Date();
+        end.setDate(end.getDate() + dayOffset);
+        end.setHours(endTime, 0, 0, 0);
 
-      for (let t = start.getTime(); t <= end.getTime(); t += intervalMs) {
-        const triggerTime = new Date(t);
-        if (triggerTime > now) {
-          fixedTimes.push(triggerTime);
+        for (let t = start.getTime(); t <= end.getTime(); t += intervalMs) {
+          const triggerTime = new Date(t);
+          if (triggerTime > now) {
+            fixedTimes.push(triggerTime);
+          }
         }
       }
-      //console.log("Fixed times to schedule:", fixedTimes.length);
 
-      // Loop through the fixed times and schedule notifications
-      for (let i = 0; i < fixedTimes.length; i++) {
-        const triggerTime = fixedTimes[i];
-        //console.log(triggerTime);
+      console.log("Fixed times to schedule:", fixedTimes.length);
 
-        // Ensure we have a word to schedule
-        const wordIndex = i % shuffled.length; // Get word based on fixed time
-        const word = shuffled[wordIndex];
-
-        // If there is no word, continue to the next fixed time
-        if (!word) continue;
-
-        //console.log(word.word); // Logging the word to be sent in the notification
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Flash Word",
-            body: `Do you remember ${word.word}?`,
-            sound: true,
-            priority: Notifications.AndroidNotificationPriority.MAX,
-            data: {
-              wordId: word.id, // include the ID
-              url: `myapp://word/${word.id}`,
+      await Promise.all(
+        fixedTimes.map((triggerTime, i) =>
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Flash Word",
+              body: `Do you remember ${shuffled[i % shuffled.length].word}?`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.MAX,
+              data: {
+                wordId: shuffled[i % shuffled.length].id,
+                url: `myapp://word/${shuffled[i % shuffled.length].id}`,
+              },
             },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: triggerTime,
-          },
-        });
-      }
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: triggerTime,
+            },
+          })
+        )
+      );
     };
 
     setupNotifications();

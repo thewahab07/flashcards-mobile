@@ -37,7 +37,7 @@ export default function WordCard({
       style={{ height: height }}
       className="items-center justify-center px-4"
     >
-      <View className="w-[85%] h-[60%] items-center justify-center">
+      <View className="w-[85%] h-[60%] items-center justify-center mb-16">
         <View
           className="w-full h-full rounded-3xl bg-white dark:bg-[#1f2937]"
           style={{
