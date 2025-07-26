@@ -211,7 +211,7 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 0 }}
           className="w-full h-full"
-          decelerationRate="fast"
+          decelerationRate="normal"
           scrollEventThrottle={16}
           onMomentumScrollEnd={(event) => {
             const offsetY = event.nativeEvent.contentOffset.y;
