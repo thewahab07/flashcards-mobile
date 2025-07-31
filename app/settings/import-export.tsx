@@ -1,5 +1,5 @@
 import { Download, Upload } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useWords } from "../../context/globalContext";
 import { useTheme } from "../../context/themeContext";
@@ -10,11 +10,37 @@ import * as DocumentPicker from "expo-document-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
 import RNFS from "react-native-fs";
+import {
+  InterstitialAd,
+  AdEventType,
+  // TestIds,
+} from "react-native-google-mobile-ads";
 
 const ImportExport = () => {
   const { words, setWords, setDisplayedWords } = useWords();
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
+  const ad = useRef(
+    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") // ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
+  ).current;
+  const [adLoaded, setAdLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadListener = ad.addAdEventListener(AdEventType.LOADED, () =>
+      setAdLoaded(true)
+    );
+    const closeListener = ad.addAdEventListener(AdEventType.CLOSED, () => {
+      setAdLoaded(false);
+      ad.load(); // preload next one
+    });
+
+    ad.load(); // load ad immediately on mount
+
+    return () => {
+      loadListener();
+      closeListener();
+    };
+  }, []);
 
   const exportWords = async () => {
     try {
@@ -43,6 +69,7 @@ const ImportExport = () => {
           "Your words have been exported successfully 📁"
         );
       }
+      if (adLoaded) ad.show();
 
       //console.log("Exported file path:", filePath);
     } catch (error) {
@@ -103,6 +130,11 @@ const ImportExport = () => {
       Platform.OS === "android"
         ? ToastAndroid.show("Imported successfully! 📥", ToastAndroid.SHORT)
         : Alert.alert("Success", "Words imported! 📥");
+      if (adLoaded) {
+        ad.show();
+      } else {
+        //console.log("not loaded.");
+      }
     } catch (error) {
       console.error("Import failed:", error);
       Alert.alert("Error", "Failed to import words.");

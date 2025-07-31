@@ -23,10 +23,7 @@
           "data": {
             "scheme": "myapp"
           },
-          "category": [
-            "DEFAULT",
-            "BROWSABLE"
-          ]
+          "category": ["DEFAULT", "BROWSABLE"]
         }
       ]
     },
@@ -36,6 +33,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-1338273735434402~3316703486"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -55,7 +58,8 @@
           "useNextNotificationsApi": true
         }
       ],
-      "expo-font"
+      "expo-font",
+      "react-native-google-mobile-ads"
     ],
     "experiments": {
       "typedRoutes": true

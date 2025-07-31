@@ -2,21 +2,28 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import "react-native-reanimated";
 import "./global.css";
 import "nativewind";
 import { WordsProvider } from "../context/globalContext";
 import { Toaster } from "sonner-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureHandlerRootView, Text } from "react-native-gesture-handler";
 import BottomMenu from "@/components/BottomMenu";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../context/themeContext";
+import {
+  BannerAd,
+  BannerAdSize,
+  // TestIds,
+} from "react-native-google-mobile-ads";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const bannerRef = useRef<BannerAd>(null);
+  const adUnitId = "ca-app-pub-1338273735434402/1686775661"; // ca-app-pub-1338273735434402/1686775661 or TestIds.ADAPTIVE_BANNER
   const { colorScheme } = useTheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -37,6 +44,11 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider>
           <SafeAreaView className="flex-1">
+            <BannerAd
+              ref={bannerRef}
+              unitId={adUnitId}
+              size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            />
             <Stack screenOptions={{ headerShown: false }} />
           </SafeAreaView>
           <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />

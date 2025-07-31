@@ -163,6 +163,16 @@ const Notifications = () => {
         >
           <Text className="text-white font-urbanist-semibold">Apply</Text>
         </TouchableOpacity>
+        <View className="w-full shadow-none flex-row items-center justify-between py-5 rounded-xl">
+          <CircleQuestionMark
+            color={isDarkMode ? "white" : "black"}
+            size={20}
+          />
+          <Text className="text-base font-urbanist-semibold text-black dark:text-white ml-4">
+            If you don’t open the app for 2 days, notifications will stop — open
+            it again to turn them back on.
+          </Text>
+        </View>
       </View>
     </View>
   );

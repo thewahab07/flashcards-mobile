@@ -19,6 +19,11 @@ import { router } from "expo-router";
 import TopBar from "@/components/TopBar";
 import WordCard from "@/components/WordCard";
 import { WordItem } from "@/types";
+import {
+  InterstitialAd,
+  AdEventType,
+  //  TestIds,
+} from "react-native-google-mobile-ads";
 
 const { height } = Dimensions.get("window");
 
@@ -46,11 +51,17 @@ export default function Home() {
   });
   const { words, displayedWords, startTime, endTime, interval } = useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const previousIndexRef = useRef(0);
+  const shownAdIndexes = useRef<Set<number>>(new Set());
   const [visibleDefinitions, setVisibleDefinitions] = useState<{
     [key: number]: boolean;
   }>({});
   const scrollViewRef = useRef<FlatList>(null);
   const didScroll = useRef(false);
+  const ad = useRef(
+    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") //ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
+  ).current;
+  const [adLoaded, setAdLoaded] = useState(false);
 
   useEffect(() => {
     const tempId = displayedWords[0]?.id;
@@ -148,7 +159,23 @@ export default function Home() {
 
     setupNotifications();
   }, [words, startTime, endTime, interval]);
+  useEffect(() => {
+    const unsubscribe = ad.addAdEventListener(AdEventType.LOADED, () => {
+      setAdLoaded(true);
+    });
 
+    const unsubscribeClose = ad.addAdEventListener(AdEventType.CLOSED, () => {
+      setAdLoaded(false);
+      ad.load(); // Preload next ad
+    });
+
+    ad.load(); // Initial load
+
+    return () => {
+      unsubscribe();
+      unsubscribeClose();
+    };
+  }, []);
   const scrollToWord = (wordId: number) => {
     //console.log("Attempting to scroll to word ID:", wordId);
     const index = displayedWords.findIndex((w) => w.id === wordId);
@@ -216,6 +243,17 @@ export default function Home() {
           onMomentumScrollEnd={(event) => {
             const offsetY = event.nativeEvent.contentOffset.y;
             const index = Math.round(offsetY / height);
+
+            const isForward = index > previousIndexRef.current;
+            const isMilestone = index !== 0 && index % 15 === 0;
+            const hasSeenAd = shownAdIndexes.current.has(index);
+
+            if (isForward && isMilestone && !hasSeenAd && adLoaded) {
+              ad.show();
+              shownAdIndexes.current.add(index);
+            }
+
+            previousIndexRef.current = index;
             setCurrentIndex(index);
           }}
           getItemLayout={(_, index) => ({

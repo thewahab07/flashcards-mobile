@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Modal, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { useWords } from "@/context/globalContext";
@@ -6,6 +6,11 @@ import { HomeIcon, Plus, Settings } from "lucide-react-native";
 import { useTheme } from "@/context/themeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { toast } from "sonner-native";
+import {
+  InterstitialAd,
+  AdEventType,
+  //  TestIds,
+} from "react-native-google-mobile-ads";
 
 export default function BottomMenu() {
   const { colorScheme } = useTheme();
@@ -15,8 +20,30 @@ export default function BottomMenu() {
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [wordAddCount, setWordAddCount] = useState(0);
+  const adRef = useRef(
+    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") // ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
+  ).current;
+  const [adLoaded, setAdLoaded] = useState(false);
   const router = useRouter();
+  useEffect(() => {
+    const loadListener = adRef.addAdEventListener(AdEventType.LOADED, () => {
+      setAdLoaded(true);
+    });
+
+    const closeListener = adRef.addAdEventListener(AdEventType.CLOSED, () => {
+      setAdLoaded(false);
+      adRef.load(); // preload next
+    });
+
+    adRef.load();
+
+    return () => {
+      loadListener();
+      closeListener();
+    };
+  }, []);
+
   const addWord = (
     newWord: string,
     newDefinition: string,
@@ -38,6 +65,13 @@ export default function BottomMenu() {
       AsyncStorage.setItem("words", JSON.stringify(updatedWords));
 
       toast.success("Another word enters the Hall of Knowledge! 🏛️");
+      setWordAddCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount % 5 === 0 && adLoaded) {
+          adRef.show();
+        }
+        return newCount;
+      });
     }
   };
   const handleAddWord = () => {
