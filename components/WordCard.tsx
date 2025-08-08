@@ -4,6 +4,7 @@ import { Bookmark } from "lucide-react-native";
 import { useWords } from "@/context/globalContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
+import { toast } from "sonner-native";
 
 type Props = {
   id: number;
@@ -30,6 +31,7 @@ export default function WordCard({
     setWords(updated);
     setDisplayedWords(updated);
     AsyncStorage.setItem("words", JSON.stringify(updated)); // persist
+    toast.success("Bookmark toggled — saved it or scrapped it, your call.");
   };
   return (
     <View

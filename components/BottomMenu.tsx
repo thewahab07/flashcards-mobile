@@ -9,8 +9,9 @@ import { toast } from "sonner-native";
 import {
   InterstitialAd,
   AdEventType,
-  //  TestIds,
+  // TestIds,
 } from "react-native-google-mobile-ads";
+import Constants from "expo-constants";
 
 export default function BottomMenu() {
   const { colorScheme } = useTheme();
@@ -21,8 +22,9 @@ export default function BottomMenu() {
   const [tagValue, setTagValue] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [wordAddCount, setWordAddCount] = useState(0);
+  const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
   const adRef = useRef(
-    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") // ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
+    InterstitialAd.createForAdRequest(interstitialId) // TestIds.INTERSTITIAL
   ).current;
   const [adLoaded, setAdLoaded] = useState(false);
   const router = useRouter();
@@ -79,7 +81,10 @@ export default function BottomMenu() {
       .split(",")
       .map((tag) => tag.trim())
       .filter((tag) => tag !== "");
-
+    if (newDefinition.trim() === "") {
+      toast.error("Defination is required.");
+      return;
+    }
     addWord(newWord, newDefinition, newTags);
 
     setNewWord("");

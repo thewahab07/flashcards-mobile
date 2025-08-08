@@ -3,12 +3,16 @@ import { Filter } from "lucide-react-native";
 import { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-
-export default function FilterButton() {
-  const { words, setDisplayedWords } = useWords();
+type Props = {
+  scrollToWord: (wordId: number) => void;
+};
+export default function FilterButton({ scrollToWord }: Props) {
+  const { words, setDisplayedWords, displayedWords } = useWords();
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const handleSearch = () => {
+    const tempId = displayedWords[0]?.id;
+    scrollToWord(tempId);
     if (searchQuery.trim() === "") {
       setDisplayedWords(words);
       return;

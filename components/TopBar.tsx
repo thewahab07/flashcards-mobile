@@ -4,9 +4,10 @@ import SortButton from "./SortButton";
 import { useWords } from "@/context/globalContext";
 type Props = {
   currentIndex: number;
+  scrollToWord: (wordId: number) => void;
 };
 
-export default function TopBar({ currentIndex }: Props) {
+export default function TopBar({ currentIndex, scrollToWord }: Props) {
   const { displayedWords } = useWords();
   const length = displayedWords?.length ?? 0;
   const current = Math.min(currentIndex + 1, length);
@@ -22,8 +23,8 @@ export default function TopBar({ currentIndex }: Props) {
         <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
           {`${current} / ${length}`}
         </Text>
-        <FilterButton />
-        <SortButton />
+        <FilterButton scrollToWord={scrollToWord} />
+        <SortButton scrollToWord={scrollToWord} />
       </View>
     </View>
   );

@@ -4,9 +4,11 @@ import { Check, SortAsc } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { WordItem } from "@/types";
-
-export default function SortButton() {
-  const { words, setDisplayedWords } = useWords();
+type Props = {
+  scrollToWord: (wordId: number) => void;
+};
+export default function SortButton({ scrollToWord }: Props) {
+  const { words, setDisplayedWords, displayedWords } = useWords();
   const [isSortDialog, setIsSortDialog] = useState(false);
   const [renderType, setRenderType] = useState("dateAsc");
   const shuffleArray = (arr: Array<WordItem>) => {
@@ -28,7 +30,10 @@ export default function SortButton() {
       router.setParams({ wordId: newDisplayedWords[0].id.toString() });
     }
   }, [renderType, words]);
-
+  const handleScrollingTop = () => {
+    const tempId = displayedWords[0]?.id;
+    scrollToWord(tempId);
+  };
   return (
     <>
       <View className="my-4">
@@ -54,6 +59,7 @@ export default function SortButton() {
               onPress={() => {
                 setRenderType("dateAsc");
                 setIsSortDialog(false);
+                handleScrollingTop();
               }}
               className="w-full"
             >
@@ -72,6 +78,7 @@ export default function SortButton() {
               onPress={() => {
                 setRenderType("dateDes");
                 setIsSortDialog(false);
+                handleScrollingTop();
               }}
               className="w-full border-y border-borderColor dark:border-borderDark"
             >
@@ -90,6 +97,7 @@ export default function SortButton() {
               onPress={() => {
                 setRenderType("random");
                 setIsSortDialog(false);
+                handleScrollingTop();
               }}
               className="w-full border-b border-borderColor dark:border-borderDark"
             >
@@ -108,6 +116,7 @@ export default function SortButton() {
               onPress={() => {
                 setRenderType("marked");
                 setIsSortDialog(false);
+                handleScrollingTop();
               }}
               className="w-full"
             >

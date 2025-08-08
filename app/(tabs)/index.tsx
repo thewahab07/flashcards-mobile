@@ -22,8 +22,9 @@ import { WordItem } from "@/types";
 import {
   InterstitialAd,
   AdEventType,
-  //  TestIds,
+  // TestIds,
 } from "react-native-google-mobile-ads";
+import Constants from "expo-constants";
 
 const { height } = Dimensions.get("window");
 
@@ -58,15 +59,11 @@ export default function Home() {
   }>({});
   const scrollViewRef = useRef<FlatList>(null);
   const didScroll = useRef(false);
-  const ad = useRef(
-    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") //ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
-  ).current;
+  const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
+  const ad = useRef(InterstitialAd.createForAdRequest(interstitialId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
 
   useEffect(() => {
-    const tempId = displayedWords[0]?.id;
-    scrollToWord(tempId);
-
     const setupNotificationHandling = async () => {
       const lastNotificationResponse =
         await Notifications.getLastNotificationResponseAsync();
@@ -274,7 +271,7 @@ export default function Home() {
           )}
         />
       )}
-      <TopBar currentIndex={currentIndex} />
+      <TopBar currentIndex={currentIndex} scrollToWord={scrollToWord} />
     </View>
   );
 }

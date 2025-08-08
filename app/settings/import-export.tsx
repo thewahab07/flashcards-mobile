@@ -15,13 +15,15 @@ import {
   AdEventType,
   // TestIds,
 } from "react-native-google-mobile-ads";
+import Constants from "expo-constants";
 
 const ImportExport = () => {
   const { words, setWords, setDisplayedWords } = useWords();
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
+  const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
   const ad = useRef(
-    InterstitialAd.createForAdRequest("ca-app-pub-1338273735434402/9515651457") // ca-app-pub-1338273735434402/9515651457 or TestIds.INTERSTITIAL
+    InterstitialAd.createForAdRequest(interstitialId) // TestIds.INTERSTITIAL
   ).current;
   const [adLoaded, setAdLoaded] = useState(false);
 

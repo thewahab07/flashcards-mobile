@@ -17,13 +17,15 @@ import {
   BannerAdSize,
   // TestIds,
 } from "react-native-google-mobile-ads";
+import Constants from "expo-constants";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const bannerId = Constants.expoConfig?.extra?.admobBannerId;
   const bannerRef = useRef<BannerAd>(null);
-  const adUnitId = "ca-app-pub-1338273735434402/1686775661"; // ca-app-pub-1338273735434402/1686775661 or TestIds.ADAPTIVE_BANNER
+  const adUnitId = bannerId; // TestIds.ADAPTIVE_BANNER
   const { colorScheme } = useTheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
