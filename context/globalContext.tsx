@@ -11,6 +11,7 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
   const [startTime, setStartTime] = useState(9);
   const [endTime, setEndTime] = useState(21);
   const [interval, setInterval] = useState(40);
+  const [isOnline, setIsOnline] = useState<boolean | null>(false);
   // useEffect to load words and settings
   useEffect(() => {
     async function loadSavedWords() {
@@ -45,6 +46,8 @@ export function WordsProvider({ children }: { children: React.ReactNode }) {
         setEndTime,
         interval,
         setInterval,
+        isOnline,
+        setIsOnline,
       }}
     >
       {children}

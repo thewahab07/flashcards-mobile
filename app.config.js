@@ -80,5 +80,6 @@ export default ({ config }) => ({
     },
     admobBannerId: process.env.ADMOB_BANNER_ID,
     admobInterstitialId: process.env.ADMOB_INTERSTITIAL_ID,
+    admobRewardedInterstitialId: process.env.ADMOB_REWARDED_INTERSTITIAL_ID,
   },
 });

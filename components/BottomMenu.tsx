@@ -1,15 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Modal, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Modal,
+  TouchableOpacity,
+  ToastAndroid,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useWords } from "@/context/globalContext";
 import { HomeIcon, Plus, Settings } from "lucide-react-native";
 import { useTheme } from "@/context/themeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { toast } from "sonner-native";
 import {
   InterstitialAd,
   AdEventType,
-  // TestIds,
+  TestIds,
 } from "react-native-google-mobile-ads";
 import Constants from "expo-constants";
 
@@ -23,9 +29,9 @@ export default function BottomMenu() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [wordAddCount, setWordAddCount] = useState(0);
   const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
-  const adRef = useRef(
-    InterstitialAd.createForAdRequest(interstitialId) // TestIds.INTERSTITIAL
-  ).current;
+
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  const adRef = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
   const router = useRouter();
   useEffect(() => {
@@ -66,10 +72,13 @@ export default function BottomMenu() {
       setDisplayedWords(updatedWords);
       AsyncStorage.setItem("words", JSON.stringify(updatedWords));
 
-      toast.success("Another word enters the Hall of Knowledge! 🏛️");
+      ToastAndroid.show(
+        "Another word enters the Hall of Knowledge! 🏛️",
+        ToastAndroid.SHORT
+      );
       setWordAddCount((prev) => {
         const newCount = prev + 1;
-        if (newCount % 5 === 0 && adLoaded) {
+        if (newCount % 3 === 0 && adLoaded) {
           adRef.show();
         }
         return newCount;
@@ -82,7 +91,7 @@ export default function BottomMenu() {
       .map((tag) => tag.trim())
       .filter((tag) => tag !== "");
     if (newDefinition.trim() === "") {
-      toast.error("Defination is required.");
+      ToastAndroid.show("Please add a definition.", ToastAndroid.SHORT);
       return;
     }
     addWord(newWord, newDefinition, newTags);

@@ -2,8 +2,13 @@ import { useWords } from "@/context/globalContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Trash } from "lucide-react-native";
 import { useState } from "react";
-import { Modal, Text, TouchableOpacity, View } from "react-native";
-import { toast } from "sonner-native";
+import {
+  Modal,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
 type Props = {
   currentIndex: number;
 };
@@ -13,7 +18,6 @@ export default function DeleteButton({ currentIndex }: Props) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteWord = (id: number) => {
     if (words.length === 0) {
-      toast.error("There's nothing to delete! 🚫");
       setIsDeleteDialogOpen(false);
       return;
     }
@@ -23,7 +27,10 @@ export default function DeleteButton({ currentIndex }: Props) {
     setDisplayedWords(updatedWords);
     AsyncStorage.setItem("words", JSON.stringify(updatedWords));
 
-    toast.error("Poof! That word just vanished into the void. 🚀");
+    ToastAndroid.show(
+      "Poof! That word just vanished into the void. 🚀",
+      ToastAndroid.SHORT
+    );
     setIsDeleteDialogOpen(false);
   };
   return (

@@ -19,4 +19,6 @@ export interface WordsContextType {
   setEndTime: React.Dispatch<React.SetStateAction<number>>;
   interval: number;
   setInterval: React.Dispatch<React.SetStateAction<number>>;
+  isOnline: boolean | null;
+  setIsOnline: React.Dispatch<React.SetStateAction<boolean | null>>;
 }

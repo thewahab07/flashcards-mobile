@@ -22,9 +22,10 @@ import { WordItem } from "@/types";
 import {
   InterstitialAd,
   AdEventType,
-  // TestIds,
+  TestIds,
 } from "react-native-google-mobile-ads";
 import Constants from "expo-constants";
+import NetInfo from "@react-native-community/netinfo";
 
 const { height } = Dimensions.get("window");
 
@@ -50,7 +51,8 @@ export default function Home() {
     Urbanist_900Black,
     Sevillana_400Regular,
   });
-  const { words, displayedWords, startTime, endTime, interval } = useWords();
+  const { words, displayedWords, startTime, endTime, interval, setIsOnline } =
+    useWords();
   const [currentIndex, setCurrentIndex] = useState(0);
   const previousIndexRef = useRef(0);
   const shownAdIndexes = useRef<Set<number>>(new Set());
@@ -60,8 +62,22 @@ export default function Home() {
   const scrollViewRef = useRef<FlatList>(null);
   const didScroll = useRef(false);
   const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
-  const ad = useRef(InterstitialAd.createForAdRequest(interstitialId)).current;
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
+  useEffect(() => {
+    // Check connection on launch
+    NetInfo.fetch().then((state) => {
+      setIsOnline(state.isConnected && state.isInternetReachable);
+    });
+
+    // Optional: Listen for future changes
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsOnline(state.isConnected && state.isInternetReachable);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const setupNotificationHandling = async () => {
@@ -130,7 +146,7 @@ export default function Home() {
         }
       }
 
-      console.log("Fixed times to schedule:", fixedTimes.length);
+      //console.log("Fixed times to schedule:", fixedTimes.length);
 
       await Promise.all(
         fixedTimes.map((triggerTime, i) =>

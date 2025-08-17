@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ToastAndroid } from "react-native";
 import { useTheme } from "../../context/themeContext";
 import {
   AlarmClock,
@@ -9,7 +9,6 @@ import {
 } from "lucide-react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { useWords } from "../../context/globalContext";
-import { toast } from "sonner-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Notifications = () => {
@@ -41,7 +40,7 @@ const Notifications = () => {
     setTempEnd("");
     setTempBreak("");
 
-    toast.success("Settings applied.");
+    ToastAndroid.show("Settings applied.", ToastAndroid.SHORT);
   };
 
   const handleStartInfoPress = () => {
@@ -75,7 +74,7 @@ const Notifications = () => {
               />
             </TouchableOpacity>
             {showStartInfo && (
-              <View className="w-full p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
+              <View className="w-[150%] p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
                 <Text className="text-sm font-urbanist-semibold text-black dark:text-white">
                   This is the hour when your notifications will start. Use a
                   number between 0 and 23.
@@ -108,7 +107,7 @@ const Notifications = () => {
               />
             </TouchableOpacity>
             {showEndInfo && (
-              <View className="w-full p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
+              <View className="w-[150%] p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
                 <Text className="text-sm font-urbanist-semibold text-black dark:text-white">
                   This is the hour when your notifications will stop. Use a
                   number greater than starting time and less than 24.
@@ -141,7 +140,7 @@ const Notifications = () => {
               />
             </TouchableOpacity>
             {showIntervalInfo && (
-              <View className="w-full p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
+              <View className="w-[150%] p-4 z-50 rounded-md absolute dark:bg-slate-800 bg-slate-200">
                 <Text className="text-sm font-urbanist-semibold text-black dark:text-white">
                   This is the time interval between each notification, choose
                   any time but in minutes, e.g; 1h30m = 90
@@ -169,8 +168,8 @@ const Notifications = () => {
             size={20}
           />
           <Text className="text-base font-urbanist-semibold text-black dark:text-white ml-4">
-            If you don’t open the app for 2 days, notifications will stop — open
-            it again to turn them back on.
+            To maintain active notifications, please open the app at least once
+            every 48 hours.
           </Text>
         </View>
       </View>
