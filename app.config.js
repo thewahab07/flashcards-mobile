@@ -64,7 +64,6 @@ export default ({ config }) => ({
       },
     ],
     "expo-font",
-    "react-native-google-mobile-ads",
   ],
 
   experiments: {

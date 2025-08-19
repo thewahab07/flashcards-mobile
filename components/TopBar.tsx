@@ -20,9 +20,11 @@ export default function TopBar({ currentIndex, scrollToWord }: Props) {
         </Text>
       </View>
       <View className="flex-row justify-around items-center w-[55%]">
-        <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
-          {`${current} / ${length}`}
-        </Text>
+        <View>
+          <Text className="text-xl font-urbanist-semibold text-[#9ca3af]">
+            {`${current} / ${length}`}
+          </Text>
+        </View>
         <FilterButton scrollToWord={scrollToWord} />
         <SortButton scrollToWord={scrollToWord} />
       </View>

@@ -22,7 +22,7 @@ export default function WordCard({
   currentIndex,
   item,
 }: Props) {
-  const { words, setWords, setDisplayedWords } = useWords();
+  const { words, setWords, setDisplayedWords, isOnline } = useWords();
   const toggleBookmark = (wordId: number) => {
     const updated = words.map((word) =>
       word.id === wordId ? { ...word, isMarked: !word.isMarked } : word
@@ -41,7 +41,9 @@ export default function WordCard({
       style={{ height: height }}
       className="items-center justify-center px-4"
     >
-      <View className="w-[85%] h-[55%] items-center justify-center mb-36">
+      <View
+        className={`w-[85%] h-[55%] items-center justify-center ${isOnline ? "mb-36" : "mb-16"}`}
+      >
         <View
           className="w-full h-full rounded-3xl bg-white dark:bg-[#1f2937]"
           style={{

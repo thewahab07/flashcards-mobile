@@ -146,12 +146,19 @@ const ImportExport = () => {
   };
 
   const showAdOrRun = (action: "import" | "export") => {
+    if (!isOnline) {
+      action === "import" ? handleImport() : handleExport();
+      return;
+    }
+
     if (adLoaded) {
       setPendingAction(action);
       ad.show();
     } else {
-      // If ad not loaded, fallback to running immediately
-      action === "import" ? handleImport() : handleExport();
+      ToastAndroid.show(
+        "Check your internet connection or Try again later.",
+        ToastAndroid.SHORT
+      );
     }
   };
 

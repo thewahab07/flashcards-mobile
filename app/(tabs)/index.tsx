@@ -15,7 +15,7 @@ import {
 } from "@expo-google-fonts/urbanist";
 import { useWords } from "../../context/globalContext";
 import * as Notifications from "expo-notifications";
-import { router } from "expo-router";
+import { router, SplashScreen } from "expo-router";
 import TopBar from "@/components/TopBar";
 import WordCard from "@/components/WordCard";
 import { WordItem } from "@/types";
@@ -65,6 +65,7 @@ export default function Home() {
   const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
   const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
+
   useEffect(() => {
     // Check connection on launch
     NetInfo.fetch().then((state) => {
@@ -224,16 +225,27 @@ export default function Home() {
   const shuffleArray = (arr: Array<WordItem>) => {
     return [...arr].sort(() => Math.random() - 0.5);
   };
+  useEffect(() => {
+    if (fontsLoaded) {
+      // once fonts are ready, hide splash
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    // don’t render anything until fonts are ready
+    return null;
+  }
   return (
     <View className="w-full h-screen">
       {words.length == 0 ? (
         <View className="h-full w-full p-4 flex justify-center items-center">
-          <Text className="text-2xl text-gray-500 font-urbanist-medium">
+          <Text className="text-2xl text-gray-500 font-urbanist-medium mb-16">
             The void is empty... for now. Add some words to bring it to life! ✨
           </Text>
         </View>
       ) : displayedWords.length == 0 ? (
-        <View className="h-full w-full p-4 flex justify-center items-center">
+        <View className="h-full w-full p-4 flex justify-center items-center mb-16">
           <Text className="text-2xl text-gray-500 font-urbanist-medium">
             Zero words. Try a different vibe. 🤷‍♂️
           </Text>
