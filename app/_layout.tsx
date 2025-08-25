@@ -1,8 +1,7 @@
-import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import "./global.css";
 import "nativewind";
@@ -12,31 +11,31 @@ import BottomMenu from "@/components/BottomMenu";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../context/themeContext";
 import BannerAdComp from "@/components/BannerAdComp";
+import mobileAds from "react-native-google-mobile-ads";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { colorScheme } = useTheme();
-  const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-  });
+  const [adsReady, setAdsReady] = useState(false);
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
+    mobileAds()
+      .initialize()
+      .then((adapterStatuses) => {
+        //console.warn("AdMob initialized");
+        setAdsReady(true);
+      })
+      .catch((err) => {
+        //console.error("Did not initialize.", err);
+      });
+  }, []);
   return (
     <WordsProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider>
           <SafeAreaView className="flex-1">
-            <BannerAdComp />
+            {adsReady ? <BannerAdComp /> : <></>}
             <Stack screenOptions={{ headerShown: false }} />
           </SafeAreaView>
           <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />

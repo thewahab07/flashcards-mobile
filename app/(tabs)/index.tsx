@@ -1,18 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Dimensions, FlatList } from "react-native";
-import { useFonts } from "@expo-google-fonts/urbanist";
-import { Sevillana_400Regular } from "@expo-google-fonts/sevillana";
-import {
-  Urbanist_400Regular,
-  Urbanist_700Bold,
-  Urbanist_100Thin,
-  Urbanist_200ExtraLight,
-  Urbanist_300Light,
-  Urbanist_500Medium,
-  Urbanist_600SemiBold,
-  Urbanist_800ExtraBold,
-  Urbanist_900Black,
-} from "@expo-google-fonts/urbanist";
+import { useFonts } from "expo-font";
 import { useWords } from "../../context/globalContext";
 import * as Notifications from "expo-notifications";
 import { router, SplashScreen } from "expo-router";
@@ -40,16 +28,16 @@ Notifications.setNotificationHandler({
 });
 export default function Home() {
   const [fontsLoaded] = useFonts({
-    Urbanist_400Regular,
-    Urbanist_700Bold,
-    Urbanist_100Thin,
-    Urbanist_200ExtraLight,
-    Urbanist_300Light,
-    Urbanist_500Medium,
-    Urbanist_600SemiBold,
-    Urbanist_800ExtraBold,
-    Urbanist_900Black,
-    Sevillana_400Regular,
+    Urbanist_400Regular: require("../../assets/fonts/Urbanist-Regular.ttf"),
+    Urbanist_700Bold: require("../../assets/fonts/Urbanist-Bold.ttf"),
+    Urbanist_100Thin: require("../../assets/fonts/Urbanist-Thin.ttf"),
+    Urbanist_200ExtraLight: require("../../assets/fonts/Urbanist-ExtraLight.ttf"),
+    Urbanist_300Light: require("../../assets/fonts/Urbanist-Light.ttf"),
+    Urbanist_500Medium: require("../../assets/fonts/Urbanist-Medium.ttf"),
+    Urbanist_600SemiBold: require("../../assets/fonts/Urbanist-SemiBold.ttf"),
+    Urbanist_800ExtraBold: require("../../assets/fonts/Urbanist-ExtraBold.ttf"),
+    Urbanist_900Black: require("../../assets/fonts/Urbanist-Black.ttf"),
+    Sevillana_400Regular: require("../../assets/fonts/Sevillana-Regular.ttf"),
   });
   const { words, displayedWords, startTime, endTime, interval, setIsOnline } =
     useWords();
