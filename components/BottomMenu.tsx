@@ -30,7 +30,8 @@ export default function BottomMenu() {
   const [wordAddCount, setWordAddCount] = useState(0);
   const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
 
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  //const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  const adUnitId = TestIds.INTERSTITIAL;
   const adRef = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
   const router = useRouter();

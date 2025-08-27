@@ -1,4 +1,4 @@
-import { Download, Upload } from "lucide-react-native";
+import { Download, Loader, Upload } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -11,7 +11,6 @@ import {
 import { useWords } from "../../context/globalContext";
 import { useTheme } from "../../context/themeContext";
 import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import * as DocumentPicker from "expo-document-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
@@ -32,37 +31,43 @@ const ImportExport = () => {
   const rewardedInterstitialId =
     Constants.expoConfig?.extra?.admobRewardedInterstitialId;
 
-  const adUnitId = __DEV__
-    ? TestIds.REWARDED_INTERSTITIAL
-    : rewardedInterstitialId;
+  // const adUnitId = __DEV__
+  //   ? TestIds.REWARDED_INTERSTITIAL
+  //   : rewardedInterstitialId;
+  const adUnitId = TestIds.REWARDED_INTERSTITIAL;
   const ad = useRef(
     RewardedInterstitialAd.createForAdRequest(adUnitId)
   ).current;
-  const [adLoaded, setAdLoaded] = useState(false);
+  const [loadingAd, setLoadingAd] = useState(false);
   const [pendingAction, setPendingAction] = useState<
     null | "import" | "export"
   >(null);
-
   useEffect(() => {
-    const loadListener = ad.addAdEventListener(RewardedAdEventType.LOADED, () =>
-      setAdLoaded(true)
+    let rewardEarned = false;
+    const loadListener = ad.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        setLoadingAd(false);
+        ad.show();
+      }
     );
 
     const earnListener = ad.addAdEventListener(
       RewardedAdEventType.EARNED_REWARD,
       () => {
-        if (pendingAction === "import") handleImport();
-        if (pendingAction === "export") handleExport();
-        setPendingAction(null);
+        rewardEarned = true;
       }
     );
 
     const closeListener = ad.addAdEventListener(AdEventType.CLOSED, () => {
-      setAdLoaded(false);
-      ad.load(); // Preload next one
+      if (rewardEarned) {
+        if (pendingAction === "import") handleImport();
+        if (pendingAction === "export") handleExport();
+      }
+      setPendingAction(null);
+      setLoadingAd(false);
+      rewardEarned = false;
     });
-
-    ad.load();
 
     return () => {
       loadListener();
@@ -70,26 +75,30 @@ const ImportExport = () => {
       closeListener();
     };
   }, [pendingAction]);
-
   // Export logic (runs only after reward earned)
   const handleExport = async () => {
+    if (words.length == 0) {
+      ToastAndroid.show("No words to export.", ToastAndroid.SHORT);
+      return;
+    }
     try {
       const filteredWords = words.map(({ id, ...rest }) => rest);
       const json = JSON.stringify(filteredWords, null, 2);
 
-      if (Platform.OS === "android") {
-        const fileName = "words.json";
-        const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-        await RNFS.writeFile(filePath, json, "utf8");
-        ToastAndroid.show("Saved to Downloads! 📁", ToastAndroid.SHORT);
-      } else {
-        const fileUri = FileSystem.documentDirectory + "words.json";
-        await FileSystem.writeAsStringAsync(fileUri, json, {
-          encoding: FileSystem.EncodingType.UTF8,
-        });
-        await Sharing.shareAsync(fileUri);
-        Alert.alert("Exported!", "Your words have been exported 📁");
-      }
+      // Generate unique filename with date + time
+      const now = new Date();
+      const pad = (n: number) => (n < 10 ? "0" + n : n.toString());
+      const date =
+        pad(now.getDate()) +
+        "-" +
+        pad(now.getMonth() + 1) +
+        "-" +
+        now.getFullYear();
+      const time = pad(now.getHours()) + pad(now.getMinutes());
+      const fileName = `words-${date}-${time}.json`;
+      const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+      await RNFS.writeFile(filePath, json, "utf8");
+      ToastAndroid.show("Saved to Downloads! 📁", ToastAndroid.SHORT);
     } catch (error) {
       ToastAndroid.show(
         "Failed to export words, Try again later",
@@ -105,7 +114,10 @@ const ImportExport = () => {
         type: "application/json",
         copyToCacheDirectory: true,
       });
-      if (result.canceled) return;
+      if (result.canceled) {
+        ToastAndroid.show("No file selected.", ToastAndroid.SHORT);
+        return;
+      }
 
       const file = result.assets[0];
       const fileContent = await FileSystem.readAsStringAsync(file.uri);
@@ -151,30 +163,14 @@ const ImportExport = () => {
       return;
     }
 
-    if (adLoaded) {
-      setPendingAction(action);
-      ad.show();
-    } else {
-      ToastAndroid.show(
-        "Check your internet connection or Try again later.",
-        ToastAndroid.SHORT
-      );
-    }
+    setPendingAction(action);
+    setLoadingAd(true);
+    ad.load();
   };
 
   return (
     <View className="w-full h-full px-6">
       <View className="w-full items-center space-y-2">
-        <TouchableOpacity
-          onPress={() => showAdOrRun("export")}
-          className="w-full flex-row items-center justify-between py-5 px-4 rounded-xl"
-        >
-          <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-            Export
-          </Text>
-          <Upload color={isDarkMode ? "white" : "black"} />
-        </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => showAdOrRun("import")}
           className="w-full border-y border-borderColor dark:border-borderDark flex-row items-center justify-between py-5 px-4 rounded-xl"
@@ -182,7 +178,25 @@ const ImportExport = () => {
           <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
             Import
           </Text>
-          <Download color={isDarkMode ? "white" : "black"} />
+          {loadingAd && pendingAction === "import" ? (
+            <Loader color={isDarkMode ? "white" : "black"} />
+          ) : (
+            <Download color={isDarkMode ? "white" : "black"} />
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => showAdOrRun("export")}
+          className="w-full flex-row items-center justify-between py-5 px-4 rounded-xl"
+        >
+          <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
+            Export
+          </Text>
+          {loadingAd && pendingAction === "export" ? (
+            <Loader color={isDarkMode ? "white" : "black"} />
+          ) : (
+            <Upload color={isDarkMode ? "white" : "black"} />
+          )}
         </TouchableOpacity>
       </View>
     </View>

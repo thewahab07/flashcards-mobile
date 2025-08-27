@@ -1,4 +1,4 @@
-import { Check, Moon, Sun } from "lucide-react-native";
+import { Check, Loader, Moon, Sun } from "lucide-react-native";
 import React, { JSX, useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, ToastAndroid } from "react-native";
 import { useColorScheme } from "nativewind";
@@ -18,11 +18,16 @@ const Theme = () => {
   const { isOnline } = useWords();
   const { toggleColorScheme } = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const adUnitId = __DEV__
-    ? TestIds.REWARDED_INTERSTITIAL
-    : RewardedInterstitialId;
+  // const adUnitId = __DEV__
+  //   ? TestIds.REWARDED_INTERSTITIAL
+  //   : RewardedInterstitialId;
+  const adUnitId = TestIds.REWARDED_INTERSTITIAL;
   const adRef = useRef<RewardedInterstitialAd | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [loadingTheme, setLoadingTheme] = useState<null | "light" | "dark">(
+    null
+  );
+  const [pendingMode, setPendingMode] = useState<null | "light" | "dark">(null);
   useEffect(() => {
     const rewardedInterstitial = RewardedInterstitialAd.createForAdRequest(
       adUnitId,
@@ -38,6 +43,10 @@ const Theme = () => {
       RewardedAdEventType.LOADED,
       () => {
         setLoaded(true);
+        if (adRef.current) {
+          adRef.current.show();
+          setLoaded(false);
+        }
         // console.log("Rewarded interstitial loaded");
       }
     );
@@ -48,6 +57,9 @@ const Theme = () => {
       (reward) => {
         // console.log("User earned reward:", reward);
         toggleColorScheme();
+        setTheme(pendingMode!);
+        setLoadingTheme(null);
+        setPendingMode(null);
       }
     );
 
@@ -56,12 +68,10 @@ const Theme = () => {
       AdEventType.CLOSED,
       () => {
         // console.log("Rewarded interstitial closed");
-        rewardedInterstitial.load();
+        setLoadingTheme(null);
+        setPendingMode(null);
       }
     );
-
-    // Initial load
-    rewardedInterstitial.load();
 
     return () => {
       unsubscribeLoaded();
@@ -71,21 +81,19 @@ const Theme = () => {
   }, []);
 
   // Show the ad when button clicked
-  const showAd = () => {
+  const showAd = (mode: "light" | "dark") => {
     if (!isOnline) {
-      // offline: skip ad, just toggle theme
       toggleColorScheme();
+      setTheme(mode);
       return;
     }
 
-    if (loaded && adRef.current) {
-      adRef.current.show();
-      setLoaded(false);
+    if (adRef.current) {
+      setLoadingTheme(mode);
+      setPendingMode(mode);
+      adRef.current.load(); // load only when clicked
     } else {
-      ToastAndroid.show(
-        "Check your internet connection or try again later.",
-        ToastAndroid.SHORT
-      );
+      ToastAndroid.show("Failed to load ad. Try again.", ToastAndroid.SHORT);
     }
   };
 
@@ -100,7 +108,7 @@ const Theme = () => {
         setTheme(mode);
         if (isOnline) {
           // only try ads if online
-          showAd();
+          showAd(mode);
         } else {
           // offline: just switch instantly
           toggleColorScheme();
@@ -114,7 +122,11 @@ const Theme = () => {
           {label}
         </Text>
       </View>
-      {theme === mode && <Check color={isDarkMode ? "white" : "black"} />}
+      {loadingTheme === mode ? (
+        <Loader color={isDarkMode ? "white" : "black"} />
+      ) : theme === mode ? (
+        <Check color={isDarkMode ? "white" : "black"} />
+      ) : null}
     </TouchableOpacity>
   );
   return (

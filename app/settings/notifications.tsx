@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ToastAndroid } from "react-native";
 import { useTheme } from "../../context/themeContext";
+import * as Notification from "expo-notifications";
 import {
   AlarmClock,
   CircleQuestionMark,
@@ -28,6 +29,15 @@ const Notifications = () => {
   const [showStartInfo, setShowStartInfo] = useState(false);
   const [showEndInfo, setShowEndInfo] = useState(false);
   const [showIntervalInfo, setShowIntervalInfo] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      const settings = await Notification.getPermissionsAsync();
+      setHasPermission(settings.granted);
+    };
+    checkPermission();
+  }, []);
 
   const applyChanges = async () => {
     await AsyncStorage.setItem("startTime", tempStart);
@@ -55,6 +65,26 @@ const Notifications = () => {
     setShowIntervalInfo(true);
     setTimeout(() => setShowIntervalInfo(false), 3000); // hide after 3s
   };
+  if (!hasPermission) {
+    return (
+      <>
+        <View className="w-full h-full px-6">
+          <View className="w-full items-center space-y-2">
+            <View className="w-full shadow-none flex-row items-center justify-between py-5 rounded-xl">
+              <CircleQuestionMark
+                color={isDarkMode ? "white" : "black"}
+                size={20}
+              />
+              <Text className="text-base font-urbanist-semibold text-black dark:text-white mx-4">
+                Notifications are disabled. Please turn them on from your
+                phone’s settings.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </>
+    );
+  }
   return (
     <View className="w-full h-full px-6">
       <View className="w-full items-center space-y-2">

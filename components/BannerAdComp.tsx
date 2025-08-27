@@ -10,7 +10,8 @@ export default function BannerAdComp() {
   const { isOnline } = useWords();
   const bannerId = Constants.expoConfig?.extra?.admobBannerId;
   const bannerRef = useRef<BannerAd>(null);
-  const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : bannerId;
+  //const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : bannerId;
+  const adUnitId = TestIds.ADAPTIVE_BANNER;
   return (
     <>
       {isOnline ? (
