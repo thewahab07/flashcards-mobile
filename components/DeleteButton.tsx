@@ -11,11 +11,16 @@ import {
 } from "react-native";
 type Props = {
   currentIndex: number;
+  isDeleteDialogOpen: boolean;
+  setIsDeleteDialogOpen: (open: boolean) => void;
 };
 
-export default function DeleteButton({ currentIndex }: Props) {
+export default function DeleteButton({
+  currentIndex,
+  isDeleteDialogOpen,
+  setIsDeleteDialogOpen,
+}: Props) {
   const { words, setWords, setDisplayedWords, displayedWords } = useWords();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteWord = (id: number) => {
     if (words.length === 0) {
       setIsDeleteDialogOpen(false);
