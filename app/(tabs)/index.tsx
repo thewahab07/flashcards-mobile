@@ -14,6 +14,7 @@ import {
 } from "react-native-google-mobile-ads";
 import Constants from "expo-constants";
 import NetInfo from "@react-native-community/netinfo";
+import { createClient } from "@supabase/supabase-js";
 
 const { height } = Dimensions.get("window");
 
@@ -50,10 +51,14 @@ export default function Home() {
   const scrollViewRef = useRef<FlatList>(null);
   const didScroll = useRef(false);
   const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
+  const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl;
+  const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey;
   // const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
   const adUnitId = TestIds.INTERSTITIAL;
   const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
   useEffect(() => {
     // Check connection on launch
@@ -77,10 +82,10 @@ export default function Home() {
         const wordId =
           lastNotificationResponse.notification.request.content.data?.wordId;
         if (wordId && displayedWords.length > 0 && !didScroll.current) {
-          console.log(
-            "App launched from notification, scrolling to word ID:",
-            wordId
-          );
+          // console.log(
+          //   "App launched from notification, scrolling to word ID:",
+          //   wordId
+          // );
           setTimeout(() => {
             scrollToWord(Number(wordId));
           }, 500);
@@ -92,12 +97,12 @@ export default function Home() {
         Notifications.addNotificationResponseReceivedListener((response) => {
           const wordId = response.notification.request.content.data?.wordId;
           if (wordId) {
-            console.log(
-              "Notification tapped while app opened, scrolling to word ID:",
-              wordId
-            );
+            // console.log(
+            //   "Notification tapped while app opened, scrolling to word ID:",
+            //   wordId
+            // );
             scrollToWord(Number(wordId));
-            console.log("Done.");
+            // console.log("Done.");
           }
         });
 
@@ -139,7 +144,7 @@ export default function Home() {
         }
       }
 
-      console.log("Fixed times to schedule:", fixedTimes.length);
+      // console.log("Fixed times to schedule:", fixedTimes.length);
 
       await Promise.all(
         fixedTimes.map((triggerTime, i) =>
@@ -166,6 +171,52 @@ export default function Home() {
     setupNotifications();
   }, [words, startTime, endTime, interval]);
 
+  async function registerForPushNotificationsAsync() {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      // console.log("Push notification permission not granted!");
+      return null;
+    }
+
+    // Get Expo push token
+    const token = (
+      await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+      })
+    ).data;
+
+    // console.log("Got Expo push token:", token);
+    return token;
+  }
+
+  useEffect(() => {
+    const saveToken = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (!token) return;
+
+      // prevent duplicate rows for same token
+      const { data, error } = await supabase
+        .from("device_tokens")
+        .upsert({ token }, { onConflict: "token" });
+
+      if (error) {
+        //console.error("Error saving token to Supabase:", error);
+      } else {
+        //console.log("Token saved to Supabase ✅");
+      }
+    };
+
+    saveToken();
+  }, []);
+
   useEffect(() => {
     const unsubscribe = ad.addAdEventListener(AdEventType.LOADED, () => {
       setAdLoaded(true);
@@ -185,14 +236,14 @@ export default function Home() {
   }, []);
 
   const scrollToWord = (wordId: number) => {
-    console.log("Attempting to scroll to word ID:", wordId);
+    //console.log("Attempting to scroll to word ID:", wordId);
     const index = displayedWords.findIndex((w) => w.id === wordId);
-    console.log(
-      "Found word at index:",
-      index,
-      "in displayedWords of length:",
-      displayedWords.length
-    );
+    //console.log(
+    //  "Found word at index:",
+    //  index,
+    // "in displayedWords of length:",
+    //  displayedWords.length
+    // );
 
     if (index !== -1 && scrollViewRef.current) {
       scrollViewRef.current?.scrollToOffset({
@@ -204,9 +255,9 @@ export default function Home() {
       // Also update the URL params to reflect the current word
       router.setParams({ wordId: wordId.toString() });
 
-      console.log("Scrolled to word:", displayedWords[index]?.word);
+      //console.log("Scrolled to word:", displayedWords[index]?.word);
     } else {
-      console.log("Word not found or scroll ref not available");
+      //console.log("Word not found or scroll ref not available");
     }
   };
 

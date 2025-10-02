@@ -1,4 +1,4 @@
-package com.orion.flashcards
+package com.orion.flash
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

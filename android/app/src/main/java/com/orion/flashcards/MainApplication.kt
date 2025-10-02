@@ -1,4 +1,4 @@
-package com.orion.flashcards
+package com.orion.flash
 
 import android.app.Application
 import android.content.res.Configuration
