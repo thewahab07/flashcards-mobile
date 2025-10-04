@@ -16,9 +16,10 @@ import mobileAds from "react-native-google-mobile-ads";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function LayoutContent() {
   const { colorScheme } = useTheme();
   const [adsReady, setAdsReady] = useState(false);
+
   useEffect(() => {
     mobileAds()
       .initialize()
@@ -30,18 +31,30 @@ export default function RootLayout() {
         //console.error("Did not initialize.", err);
       });
   }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1">
+        {adsReady ? <BannerAdComp /> : null}
+        <Stack screenOptions={{ headerShown: false }} />
+      </SafeAreaView>
+
+      <StatusBar
+        style={colorScheme === "dark" ? "light" : "dark"}
+        backgroundColor={colorScheme === "dark" ? "#111827" : "#f8fafc"}
+        translucent={false}
+      />
+
+      <BottomMenu />
+    </GestureHandlerRootView>
+  );
+}
+export default function RootLayout() {
   return (
     <WordsProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider>
-          <SafeAreaView className="flex-1">
-            {adsReady ? <BannerAdComp /> : <></>}
-            <Stack screenOptions={{ headerShown: false }} />
-          </SafeAreaView>
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-          <BottomMenu />
-        </ThemeProvider>
-      </GestureHandlerRootView>
+      <ThemeProvider>
+        <LayoutContent />
+      </ThemeProvider>
     </WordsProvider>
   );
 }
