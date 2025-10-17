@@ -58,8 +58,6 @@ export default function Home() {
   const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
   useEffect(() => {
     // Check connection on launch
     NetInfo.fetch().then((state) => {
@@ -112,6 +110,81 @@ export default function Home() {
       setupNotificationHandling();
     }
   }, [displayedWords]); // Include displayedWords as dependency
+
+  let supabase: ReturnType<typeof createClient> | null = null;
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      supabase = createClient(supabaseUrl, supabaseAnonKey);
+    } catch (err) {
+      console.error("Failed to create Supabase client:", err);
+      supabase = null;
+    }
+  } else {
+    console.warn(
+      "Supabase config missing! supabaseUrl or supabaseAnonKey is undefined in Constants.expoConfig.extra"
+    );
+  }
+  async function registerForPushNotificationsAsync() {
+    try {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.info("Push notification permission not granted");
+        return null;
+      }
+
+      // only pass projectId if available
+      const opts = Constants.expoConfig?.extra?.eas?.projectId
+        ? { projectId: Constants.expoConfig?.extra?.eas?.projectId }
+        : undefined;
+
+      const tokenResp = await Notifications.getExpoPushTokenAsync(opts as any);
+      const token = tokenResp?.data;
+      if (!token) {
+        console.warn("No push token returned", tokenResp);
+        return null;
+      }
+      return token;
+    } catch (err) {
+      console.error("Error registering for push notifications:", err);
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    const saveToken = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (!token) return;
+
+        if (!supabase) {
+          console.warn("Skipping saving token: Supabase client unavailable.");
+          return;
+        }
+
+        const { data, error } = await (supabase as any)
+          .from("device_tokens")
+          .upsert({ token }, { onConflict: "token" });
+
+        if (error) {
+          console.error("Error saving token to Supabase:", error);
+        } else {
+          console.info("Token saved to Supabase ✅", data);
+        }
+      } catch (err) {
+        console.error("Unexpected error in saveToken:", err);
+      }
+    };
+
+    saveToken();
+  }, []);
 
   useEffect(() => {
     const setupNotifications = async () => {
@@ -170,52 +243,6 @@ export default function Home() {
 
     setupNotifications();
   }, [words, startTime, endTime, interval]);
-
-  async function registerForPushNotificationsAsync() {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      // console.log("Push notification permission not granted!");
-      return null;
-    }
-
-    // Get Expo push token
-    const token = (
-      await Notifications.getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId,
-      })
-    ).data;
-
-    // console.log("Got Expo push token:", token);
-    return token;
-  }
-
-  useEffect(() => {
-    const saveToken = async () => {
-      const token = await registerForPushNotificationsAsync();
-      if (!token) return;
-
-      // prevent duplicate rows for same token
-      const { data, error } = await supabase
-        .from("device_tokens")
-        .upsert({ token }, { onConflict: "token" });
-
-      if (error) {
-        //console.error("Error saving token to Supabase:", error);
-      } else {
-        //console.log("Token saved to Supabase ✅");
-      }
-    };
-
-    saveToken();
-  }, []);
 
   useEffect(() => {
     const unsubscribe = ad.addAdEventListener(AdEventType.LOADED, () => {
