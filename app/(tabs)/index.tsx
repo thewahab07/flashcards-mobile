@@ -20,7 +20,6 @@ const { height } = Dimensions.get("window");
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: true,
     shouldShowBanner: true,
@@ -73,9 +72,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const setupNotificationHandling = async () => {
+    const setupNotificationHandling = () => {
       const lastNotificationResponse =
-        await Notifications.getLastNotificationResponseAsync();
+        Notifications.getLastNotificationResponse();
       if (lastNotificationResponse) {
         const wordId =
           lastNotificationResponse.notification.request.content.data?.wordId;
@@ -116,13 +115,13 @@ export default function Home() {
     try {
       supabase = createClient(supabaseUrl, supabaseAnonKey);
     } catch (err) {
-      console.error("Failed to create Supabase client:", err);
+      //console.error("Failed to create Supabase client:", err);
       supabase = null;
     }
   } else {
-    console.warn(
-      "Supabase config missing! supabaseUrl or supabaseAnonKey is undefined in Constants.expoConfig.extra"
-    );
+    //console.warn(
+    // "Supabase config missing! supabaseUrl or supabaseAnonKey is undefined in Constants.expoConfig.extra"
+    //);
   }
   async function registerForPushNotificationsAsync() {
     try {
@@ -136,7 +135,7 @@ export default function Home() {
       }
 
       if (finalStatus !== "granted") {
-        console.info("Push notification permission not granted");
+        //console.info("Push notification permission not granted");
         return null;
       }
 
@@ -148,12 +147,12 @@ export default function Home() {
       const tokenResp = await Notifications.getExpoPushTokenAsync(opts as any);
       const token = tokenResp?.data;
       if (!token) {
-        console.warn("No push token returned", tokenResp);
+        //console.warn("No push token returned", tokenResp);
         return null;
       }
       return token;
     } catch (err) {
-      console.error("Error registering for push notifications:", err);
+      //console.error("Error registering for push notifications:", err);
       return null;
     }
   }
@@ -165,7 +164,7 @@ export default function Home() {
         if (!token) return;
 
         if (!supabase) {
-          console.warn("Skipping saving token: Supabase client unavailable.");
+          //console.warn("Skipping saving token: Supabase client unavailable.");
           return;
         }
 
@@ -174,12 +173,12 @@ export default function Home() {
           .upsert({ token }, { onConflict: "token" });
 
         if (error) {
-          console.error("Error saving token to Supabase:", error);
+          //console.error("Error saving token to Supabase:", error);
         } else {
-          console.info("Token saved to Supabase ✅", data);
+          //console.info("Token saved to Supabase ✅", data);
         }
       } catch (err) {
-        console.error("Unexpected error in saveToken:", err);
+        //console.error("Unexpected error in saveToken:", err);
       }
     };
 

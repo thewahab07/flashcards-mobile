@@ -173,7 +173,7 @@ const ImportExport = () => {
       <View className="w-full items-center space-y-2">
         <TouchableOpacity
           onPress={() => showAdOrRun("import")}
-          className="w-full border-y border-borderColor dark:border-borderDark flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full border-b border-borderColor dark:border-borderDark flex-row items-center justify-between py-5 px-4 rounded-xl"
         >
           <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
             Import

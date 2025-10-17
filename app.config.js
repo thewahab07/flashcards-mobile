@@ -3,8 +3,7 @@ export default ({ config }) => ({
   ...config,
   name: "Flash",
   slug: "flashcards",
-  version: "1.0.0",
-  orientation: "portrait",
+  version: "1.0.1",
   icon: "./assets/images/icon.png",
   scheme: "myapp",
   userInterfaceStyle: "automatic",
@@ -15,7 +14,7 @@ export default ({ config }) => ({
   },
 
   android: {
-    versionCode: 4,
+    versionCode: 5,
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -44,9 +43,12 @@ export default ({ config }) => ({
       "react-native-google-mobile-ads",
       {
         androidAppId: process.env.ADMOB_APP_ID,
+        iosAppId: null,
       },
     ],
     "expo-router",
+    "expo-web-browser",
+    "expo-media-library",
     [
       "expo-splash-screen",
       {

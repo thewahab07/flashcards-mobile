@@ -1,6 +1,5 @@
 <resources>
   <string name="app_name">Flash</string>
-  <string name="admob_app_id">ca-app-pub-1338273735434402~9359780343</string>
   <string name="expo_system_ui_user_interface_style" translatable="false">automatic</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>

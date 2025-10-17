@@ -40,6 +40,14 @@ const Notifications = () => {
   }, []);
 
   const applyChanges = async () => {
+    let breakInterval = Number(tempBreak);
+    if (breakInterval < 10) {
+      ToastAndroid.show(
+        "Interval must be at least 10 minutes.",
+        ToastAndroid.SHORT
+      );
+      return; // stop here — don't save anything
+    }
     await AsyncStorage.setItem("startTime", tempStart);
     await AsyncStorage.setItem("endTime", tempEnd);
     await AsyncStorage.setItem("interval", tempBreak);
