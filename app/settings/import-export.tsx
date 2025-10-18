@@ -10,11 +10,10 @@ import {
 } from "react-native";
 import { useWords } from "../../context/globalContext";
 import { useTheme } from "../../context/themeContext";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as DocumentPicker from "expo-document-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
-import RNFS from "react-native-fs";
 import {
   RewardedInterstitialAd,
   RewardedAdEventType,
@@ -96,9 +95,39 @@ const ImportExport = () => {
         now.getFullYear();
       const time = pad(now.getHours()) + pad(now.getMinutes());
       const fileName = `words-${date}-${time}.json`;
-      const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-      await RNFS.writeFile(filePath, json, "utf8");
-      ToastAndroid.show("Saved to Downloads! 📁", ToastAndroid.SHORT);
+      // Write to app's cache
+
+      const fileUri = FileSystem.cacheDirectory + fileName;
+
+      await FileSystem.writeAsStringAsync(fileUri, json, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Share or save to Downloads (Android only)
+
+      if (Platform.OS === "android") {
+        const permissions =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (permissions.granted) {
+          const base64 = await FileSystem.readAsStringAsync(fileUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          await FileSystem.StorageAccessFramework.createFileAsync(
+            permissions.directoryUri,
+            fileName,
+            "application/json"
+          ).then(async (uri) => {
+            await FileSystem.writeAsStringAsync(uri, base64, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+          });
+          ToastAndroid.show("Exported successfully! 📂", ToastAndroid.SHORT);
+        } else {
+          ToastAndroid.show("Permission denied.", ToastAndroid.SHORT);
+        }
+      } else {
+        ToastAndroid.show("IOS not supported", ToastAndroid.SHORT);
+      }
     } catch (error) {
       ToastAndroid.show(
         "Failed to export words, Try again later",
@@ -120,7 +149,9 @@ const ImportExport = () => {
       }
 
       const file = result.assets[0];
-      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+      const fileContent = await FileSystem.readAsStringAsync(file.uri, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
       let importedWords = JSON.parse(fileContent);
 
       const updatedWords = [...words];

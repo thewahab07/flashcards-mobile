@@ -43,7 +43,7 @@ function LayoutContent() {
         <StatusBar
           translucent
           backgroundColor="transparent"
-          barStyle={colorScheme == "light" ? "dark-content" : "light-content"}
+          barStyle="light-content"
         />
 
         <BottomMenu />

@@ -4,10 +4,15 @@ import { Check, SortAsc } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { WordItem } from "@/types";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 type Props = {
   scrollToWord: (wordId: number) => void;
 };
 export default function SortButton({ scrollToWord }: Props) {
+  // inside component:
+  const insets = useSafeAreaInsets();
   const { words, setDisplayedWords, displayedWords } = useWords();
   const [isSortDialog, setIsSortDialog] = useState(false);
   const [renderType, setRenderType] = useState("dateAsc");
@@ -35,7 +40,7 @@ export default function SortButton({ scrollToWord }: Props) {
     scrollToWord(tempId);
   };
   return (
-    <>
+    <SafeAreaView>
       <View className="my-4">
         <SortAsc
           onPress={() => {
@@ -51,7 +56,10 @@ export default function SortButton({ scrollToWord }: Props) {
           onPress={() => setIsSortDialog(false)}
           className="justify-center flex-1 bg-[rgba(0,0,0,0.5)]"
         >
-          <View className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor dark:border-borderDark p-4 bottom-0 absolute">
+          <View
+            style={{ bottom: insets.bottom }}
+            className="bg-white dark:bg-backgroundDark w-full self-center rounded-lg border border-borderColor dark:border-borderDark p-4 bottom-0 absolute"
+          >
             <Text className="text-2xl pl-2 py-2 text-black dark:text-white font-urbanist-bold">
               Sort by
             </Text>
@@ -142,6 +150,6 @@ export default function SortButton({ scrollToWord }: Props) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 }
