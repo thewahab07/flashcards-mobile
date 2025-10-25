@@ -3,7 +3,7 @@ export default ({ config }) => ({
   ...config,
   name: "Flash",
   slug: "flashcards",
-  version: "1.0.1",
+  version: "1.0.2",
   icon: "./assets/images/icon.png",
   scheme: "myapp",
   userInterfaceStyle: "automatic",

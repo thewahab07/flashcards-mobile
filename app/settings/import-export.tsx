@@ -30,10 +30,10 @@ const ImportExport = () => {
   const rewardedInterstitialId =
     Constants.expoConfig?.extra?.admobRewardedInterstitialId;
 
-  // const adUnitId = __DEV__
-  //   ? TestIds.REWARDED_INTERSTITIAL
-  //   : rewardedInterstitialId;
-  const adUnitId = TestIds.REWARDED_INTERSTITIAL;
+  const adUnitId = __DEV__
+    ? TestIds.REWARDED_INTERSTITIAL
+    : rewardedInterstitialId;
+  //const adUnitId = TestIds.REWARDED_INTERSTITIAL;
   const ad = useRef(
     RewardedInterstitialAd.createForAdRequest(adUnitId)
   ).current;

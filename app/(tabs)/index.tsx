@@ -52,8 +52,8 @@ export default function Home() {
   const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
   const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl;
   const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey;
-  // const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
-  const adUnitId = TestIds.INTERSTITIAL;
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  //const adUnitId = TestIds.INTERSTITIAL;
   const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
 

@@ -18,10 +18,10 @@ const Theme = () => {
   const { isOnline } = useWords();
   const { toggleColorScheme } = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  // const adUnitId = __DEV__
-  //   ? TestIds.REWARDED_INTERSTITIAL
-  //   : RewardedInterstitialId;
-  const adUnitId = TestIds.REWARDED_INTERSTITIAL;
+  const adUnitId = __DEV__
+    ? TestIds.REWARDED_INTERSTITIAL
+    : RewardedInterstitialId;
+  //const adUnitId = TestIds.REWARDED_INTERSTITIAL;
   const adRef = useRef<RewardedInterstitialAd | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadingTheme, setLoadingTheme] = useState<null | "light" | "dark">(
