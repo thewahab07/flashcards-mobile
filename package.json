@@ -7,7 +7,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:local:production": "export $(grep -v '^#' .env | xargs) && eas build --platform android --profile production --local"
+    "build:local:production": "export $(grep -v '^#' .env | xargs) && eas build --platform android --profile production --local",
+    "build:local:development": "export $(grep -v '^#' .env | xargs) && eas build --platform android --profile development --local",
+    "build:local:preview": "export $(grep -v '^#' .env | xargs) && eas build --platform android --profile preview --local"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

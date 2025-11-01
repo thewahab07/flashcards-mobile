@@ -200,15 +200,25 @@ const ImportExport = () => {
   };
 
   return (
-    <View className="w-full h-full px-6">
-      <View className="w-full items-center space-y-2">
+    <View className="w-full px-4 my-4 bg-white dark:bg-gray-800 rounded-3xl">
+      <View className="py-4 border-b border-borderColor dark:border-borderDark">
+        <Text className="text-2xl text-black dark:text-white font-urbanist-bold">
+          Data Management
+        </Text>
+      </View>
+      <View className="w-full items-center py-4">
         <TouchableOpacity
           onPress={() => showAdOrRun("import")}
-          className="w-full border-b border-borderColor dark:border-borderDark flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
         >
-          <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-            Import
-          </Text>
+          <View>
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
+              Import
+            </Text>
+            <Text className="ml-2 text-sm font-urbanist-medium text-gray-500">
+              Add flashcards from JSON file.
+            </Text>
+          </View>
           {loadingAd && pendingAction === "import" ? (
             <Loader color={isDarkMode ? "white" : "black"} />
           ) : (
@@ -218,11 +228,16 @@ const ImportExport = () => {
 
         <TouchableOpacity
           onPress={() => showAdOrRun("export")}
-          className="w-full flex-row items-center justify-between py-5 px-4 rounded-xl"
+          className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
         >
-          <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-            Export
-          </Text>
+          <View>
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
+              Export
+            </Text>
+            <Text className="ml-2 text-sm font-urbanist-medium text-gray-500">
+              Save your flashcards as JSON file.
+            </Text>
+          </View>
           {loadingAd && pendingAction === "export" ? (
             <Loader color={isDarkMode ? "white" : "black"} />
           ) : (

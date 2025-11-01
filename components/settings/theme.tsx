@@ -1,6 +1,12 @@
 import { Check, Loader, Moon, Sun } from "lucide-react-native";
 import React, { JSX, useEffect, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, ToastAndroid } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ToastAndroid,
+  ImageBackground,
+} from "react-native";
 import { useColorScheme } from "nativewind";
 import { useTheme } from "../../context/themeContext";
 import Constants from "expo-constants";
@@ -97,11 +103,7 @@ const Theme = () => {
     }
   };
 
-  const renderOption = (
-    label: string,
-    icon: JSX.Element,
-    mode: "light" | "dark"
-  ) => (
+  const renderOption = (label: string, mode: "light" | "dark") => (
     <TouchableOpacity
       disabled={theme === mode}
       onPress={() => {
@@ -114,36 +116,45 @@ const Theme = () => {
           toggleColorScheme();
         }
       }}
-      className="w-full border-none shadow-none flex-row items-center justify-between py-5 px-4 rounded-xl"
+      className={`w-[40%] h-48 border-none shadow-none items-center justify-between rounded-2xl`}
     >
-      <View className="flex-row items-center">
-        {icon}
-        <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-          {label}
-        </Text>
+      <View className="w-full h-full items-center rounded-3xl">
+        <ImageBackground
+          key={`${mode}-${theme}`}
+          fadeDuration={0}
+          source={
+            mode == "light"
+              ? require("../../assets/images/lightTheme.jpeg")
+              : require("../../assets/images/darkTheme.jpeg")
+          }
+          className={`w-full h-48 rounded-3xl overflow-hidden justify-end ${theme == mode ? "border-2 border-borderDark" : "border-none"}`}
+          resizeMode="cover"
+        >
+          <View className="flex-row py-1 justify-center w-full">
+            {loadingTheme != mode ? (
+              <Text
+                className={`text-lg font-urbanist-semibold ${mode == "light" ? "text-black" : "text-white"}`}
+              >
+                {label}
+              </Text>
+            ) : (
+              <Loader color={mode == "light" ? "black" : "white"} />
+            )}
+          </View>
+        </ImageBackground>
       </View>
-      {loadingTheme === mode ? (
-        <Loader color={isDarkMode ? "white" : "black"} />
-      ) : theme === mode ? (
-        <Check color={isDarkMode ? "white" : "black"} />
-      ) : null}
     </TouchableOpacity>
   );
   return (
-    <View className="w-full h-full px-6">
-      <View className="w-full items-center space-y-2">
-        {renderOption(
-          "Light",
-          <Sun color={isDarkMode ? "white" : "black"} />,
-          "light"
-        )}
-        <View className="border-t border-borderColor dark:border-borderDark w-full">
-          {renderOption(
-            "Dark",
-            <Moon color={isDarkMode ? "white" : "black"} />,
-            "dark"
-          )}
-        </View>
+    <View className="w-full px-4 my-4 bg-white dark:bg-gray-800 rounded-3xl">
+      <View className="py-4 border-b border-borderColor dark:border-borderDark">
+        <Text className="text-2xl text-black dark:text-white font-urbanist-bold">
+          Theme
+        </Text>
+      </View>
+      <View className="w-full flex-row justify-around py-4">
+        {renderOption("Light", "light")}
+        {renderOption("Dark", "dark")}
       </View>
     </View>
   );

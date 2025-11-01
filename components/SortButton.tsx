@@ -40,7 +40,7 @@ export default function SortButton({ scrollToWord }: Props) {
     scrollToWord(tempId);
   };
   return (
-    <SafeAreaView>
+    <>
       <View className="my-4">
         <SortAsc
           onPress={() => {
@@ -150,6 +150,6 @@ export default function SortButton({ scrollToWord }: Props) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
