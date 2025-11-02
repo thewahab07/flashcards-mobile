@@ -1,5 +1,5 @@
 import { Download, Loader, Upload } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -14,66 +14,24 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as DocumentPicker from "expo-document-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
-import {
-  RewardedInterstitialAd,
-  RewardedAdEventType,
-  AdEventType,
-  TestIds,
-} from "react-native-google-mobile-ads";
-import Constants from "expo-constants";
+type ImportExportProps = {
+  requestAdAction: (
+    action: { type: "import" | "export"; payload?: any },
+    onReward: () => void,
+    onClose?: () => void
+  ) => void;
+  isLoadingAd: boolean;
+  currentPendingAction: "import" | "export" | null | undefined;
+};
 
-const ImportExport = () => {
+const ImportExport = ({
+  requestAdAction,
+  isLoadingAd,
+  currentPendingAction,
+}: ImportExportProps) => {
   const { words, setWords, setDisplayedWords, isOnline } = useWords();
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
-
-  const rewardedInterstitialId =
-    Constants.expoConfig?.extra?.admobRewardedInterstitialId;
-
-  const adUnitId = __DEV__
-    ? TestIds.REWARDED_INTERSTITIAL
-    : rewardedInterstitialId;
-  //const adUnitId = TestIds.REWARDED_INTERSTITIAL;
-  const ad = useRef(
-    RewardedInterstitialAd.createForAdRequest(adUnitId)
-  ).current;
-  const [loadingAd, setLoadingAd] = useState(false);
-  const [pendingAction, setPendingAction] = useState<
-    null | "import" | "export"
-  >(null);
-  useEffect(() => {
-    let rewardEarned = false;
-    const loadListener = ad.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoadingAd(false);
-        ad.show();
-      }
-    );
-
-    const earnListener = ad.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      () => {
-        rewardEarned = true;
-      }
-    );
-
-    const closeListener = ad.addAdEventListener(AdEventType.CLOSED, () => {
-      if (rewardEarned) {
-        if (pendingAction === "import") handleImport();
-        if (pendingAction === "export") handleExport();
-      }
-      setPendingAction(null);
-      setLoadingAd(false);
-      rewardEarned = false;
-    });
-
-    return () => {
-      loadListener();
-      earnListener();
-      closeListener();
-    };
-  }, [pendingAction]);
   // Export logic (runs only after reward earned)
   const handleExport = async () => {
     if (words.length == 0) {
@@ -188,15 +146,18 @@ const ImportExport = () => {
     }
   };
 
-  const showAdOrRun = (action: "import" | "export") => {
+  const handleAction = (action: "import" | "export") => {
     if (!isOnline) {
       action === "import" ? handleImport() : handleExport();
       return;
     }
-
-    setPendingAction(action);
-    setLoadingAd(true);
-    ad.load();
+    requestAdAction(
+      { type: action },
+      action === "import" ? handleImport : handleExport,
+      () => {
+        // Ad closed without reward - cleanup
+      }
+    );
   };
 
   return (
@@ -208,7 +169,7 @@ const ImportExport = () => {
       </View>
       <View className="w-full items-center py-4">
         <TouchableOpacity
-          onPress={() => showAdOrRun("import")}
+          onPress={() => handleAction("import")}
           className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
         >
           <View>
@@ -219,7 +180,7 @@ const ImportExport = () => {
               Add flashcards from JSON file.
             </Text>
           </View>
-          {loadingAd && pendingAction === "import" ? (
+          {isLoadingAd && currentPendingAction === "import" ? (
             <Loader color={isDarkMode ? "white" : "black"} />
           ) : (
             <Download color={isDarkMode ? "white" : "black"} />
@@ -227,7 +188,7 @@ const ImportExport = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => showAdOrRun("export")}
+          onPress={() => handleAction("export")}
           className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
         >
           <View>
@@ -238,7 +199,7 @@ const ImportExport = () => {
               Save your flashcards as JSON file.
             </Text>
           </View>
-          {loadingAd && pendingAction === "export" ? (
+          {isLoadingAd && currentPendingAction === "export" ? (
             <Loader color={isDarkMode ? "white" : "black"} />
           ) : (
             <Upload color={isDarkMode ? "white" : "black"} />

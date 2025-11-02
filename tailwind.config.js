@@ -8,7 +8,7 @@ module.exports = {
         background: "#f8fafc",
         backgroundDark: "#111827",
         borderColor: "#ebebed",
-        borderDark: "#d4d1ff",
+        borderDark: "#343847",
         primary: "#7c4dff",
       },
       fontFamily: {

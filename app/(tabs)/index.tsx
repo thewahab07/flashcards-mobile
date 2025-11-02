@@ -15,7 +15,7 @@ import {
 import Constants from "expo-constants";
 import NetInfo from "@react-native-community/netinfo";
 import { createClient } from "@supabase/supabase-js";
-
+import * as Device from "expo-device";
 const { height } = Dimensions.get("window");
 
 Notifications.setNotificationHandler({
@@ -156,8 +156,10 @@ export default function Home() {
       return null;
     }
   }
-
   useEffect(() => {
+    const { deviceName, brand, designName, modelName } = Device;
+    const userDevice =
+      `${deviceName || "Unknown"}, ${brand || "Unknown"} ${designName || modelName || "Unknown"}`.trim();
     const saveToken = async () => {
       try {
         const token = await registerForPushNotificationsAsync();
@@ -170,7 +172,7 @@ export default function Home() {
 
         const { data, error } = await (supabase as any)
           .from("device_tokens")
-          .upsert({ token }, { onConflict: "token" });
+          .upsert({ token, device: userDevice }, { onConflict: "token" });
 
         if (error) {
           //console.error("Error saving token to Supabase:", error);

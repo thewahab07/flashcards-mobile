@@ -76,7 +76,7 @@ const Notifications = () => {
   if (!hasPermission) {
     return (
       <>
-        <View className="w-full px-4 my-4 bg-white dark:bg-black rounded-3xl">
+        <View className="w-full px-4 my-4 bg-white dark:bg-gray-800 rounded-3xl">
           <View className="py-4 border-b border-borderColor dark:border-borderDark">
             <Text className="text-2xl text-black dark:text-white font-urbanist-bold">
               Notifications
