@@ -12,6 +12,7 @@
     "build:local:preview": "export $(grep -v '^#' .env | xargs) && eas build --platform android --profile preview --local"
   },
   "dependencies": {
+    "@gorhom/bottom-sheet": "^5.2.6",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-navigation/native": "^7.1.6",

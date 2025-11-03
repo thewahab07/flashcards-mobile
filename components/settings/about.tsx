@@ -41,7 +41,7 @@ const About = () => {
               App Version
             </Text>
             <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
-              1.1.0
+              1.1.1
             </Text>
           </View>
         </View>
