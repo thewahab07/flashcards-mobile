@@ -14,7 +14,13 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useWords } from "@/context/globalContext";
-import { HomeIcon, Plus, Settings } from "lucide-react-native";
+import {
+  HomeIcon,
+  Loader,
+  Plus,
+  Settings,
+  Sparkles,
+} from "lucide-react-native";
 import { useTheme } from "@/context/themeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -29,6 +35,7 @@ import BottomSheet, {
   BottomSheetView,
   BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
+import { generateDefinition } from "@/utils/gemini";
 
 export default function BottomMenu() {
   const { colorScheme } = useTheme();
@@ -38,6 +45,7 @@ export default function BottomMenu() {
   const [newDefinition, setNewDefinition] = useState("");
   const [tagValue, setTagValue] = useState("");
   const [wordAddCount, setWordAddCount] = useState(0);
+  const [loadingDef, setLoadingDef] = useState(false);
   // BottomSheet refs and snap points
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["75%", "90%"], []);
@@ -147,6 +155,28 @@ export default function BottomMenu() {
       setTagValue("");
     }
   }, []);
+
+  const handleGenerateByAI = async () => {
+    if (!newWord.trim()) {
+      ToastAndroid.show("Please enter a word first.", ToastAndroid.SHORT);
+      return;
+    }
+    setLoadingDef(true);
+    ToastAndroid.show("Generating definition...", ToastAndroid.SHORT);
+
+    try {
+      const definition = await generateDefinition(newWord.trim(), words);
+      setNewDefinition(definition);
+      setLoadingDef(false);
+      //ToastAndroid.show("Definition generated!", ToastAndroid.SHORT);
+    } catch (error) {
+      setLoadingDef(false);
+      ToastAndroid.show(
+        "Ai not working rn, Try again later.",
+        ToastAndroid.SHORT
+      );
+    }
+  };
   return (
     <>
       <SafeAreaView>
@@ -237,15 +267,29 @@ export default function BottomMenu() {
             value={newWord}
             onChangeText={setNewWord}
           />
-          <BottomSheetTextInput
-            placeholder="Enter definition"
-            placeholderTextColor="#888"
-            style={{ textAlignVertical: "top" }}
-            className="p-[10px] rounded-lg mb-3 border-b border-borderColor dark:border-borderDark focus:border-primary h-24 text-black dark:text-white font-urbanist-medium"
-            multiline
-            value={newDefinition}
-            onChangeText={setNewDefinition}
-          />
+          <View>
+            <View className="absolute right-0 z-10">
+              <TouchableOpacity
+                className="bg-primary p-3 my-2 rounded-full items-center justify-center w-12 h-12"
+                onPress={handleGenerateByAI}
+              >
+                {loadingDef ? (
+                  <Loader size={20} color={"#ffffff"} />
+                ) : (
+                  <Sparkles size={20} color={"#ffffff"} />
+                )}
+              </TouchableOpacity>
+            </View>
+            <BottomSheetTextInput
+              placeholder="Enter definition"
+              placeholderTextColor="#888"
+              style={{ textAlignVertical: "top" }}
+              className="p-[10px] rounded-lg mb-3 border-b border-borderColor dark:border-borderDark focus:border-primary h-24 text-black dark:text-white font-urbanist-medium"
+              multiline
+              value={newDefinition}
+              onChangeText={setNewDefinition}
+            />
+          </View>
           <BottomSheetTextInput
             placeholder="Enter tags (comma separated)"
             placeholderTextColor="#888"

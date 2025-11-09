@@ -3,7 +3,7 @@ export default ({ config }) => ({
   ...config,
   name: "Flash",
   slug: "flashcards",
-  version: "1.1.1",
+  version: "1.2.0",
   icon: "./assets/images/icon.png",
   scheme: "myapp",
   userInterfaceStyle: "automatic",
@@ -15,7 +15,7 @@ export default ({ config }) => ({
 
   android: {
     enableEdgeToEdge: true,
-    versionCode: 8,
+    versionCode: 9,
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
@@ -87,5 +87,6 @@ export default ({ config }) => ({
     admobRewardedInterstitialId: process.env.ADMOB_REWARDED_INTERSTITIAL_ID,
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
   },
 });

@@ -118,7 +118,12 @@ export default function WordCard({
                   </View>
                 </View>
               ) : (
-                <Text className="text-5xl font-urbanist-bold text-primary leading-normal ">
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                  className="text-5xl font-urbanist-bold text-primary leading-normal "
+                >
                   {item.word}
                 </Text>
               )}
