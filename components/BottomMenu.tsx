@@ -257,7 +257,7 @@ export default function BottomMenu() {
       >
         <BottomSheetView className="p-5">
           <Text className="text-xl font-urbanist-bold text-black dark:text-white mb-4">
-            Add New Word
+            Add New Card
           </Text>
 
           <BottomSheetTextInput
@@ -302,7 +302,7 @@ export default function BottomMenu() {
             className="bg-primary p-3 rounded-lg items-center mb-2"
             onPress={handleAddWord}
           >
-            <Text className="text-white font-urbanist-semibold">Add Word</Text>
+            <Text className="text-white font-urbanist-semibold">Add Card</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

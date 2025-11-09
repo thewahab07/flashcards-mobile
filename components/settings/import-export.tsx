@@ -17,12 +17,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
 type ImportExportProps = {
   requestAdAction: (
-    action: { type: "import" | "export"; payload?: any },
+    action: { type: "import" | "export" | "delete"; payload?: any },
     onReward: () => void,
     onClose?: () => void
   ) => void;
   isLoadingAd: boolean;
-  currentPendingAction: "import" | "export" | null | undefined;
+  currentPendingAction: "import" | "export" | "delete" | null | undefined;
 };
 
 const ImportExport = ({
@@ -147,21 +147,6 @@ const ImportExport = ({
       Alert.alert("Error", "Failed to import words.");
     }
   };
-
-  const handleAction = (action: "import" | "export") => {
-    if (!isOnline) {
-      action === "import" ? handleImport() : handleExport();
-      return;
-    }
-    requestAdAction(
-      { type: action },
-      action === "import" ? handleImport : handleExport,
-      () => {
-        // Ad closed without reward - cleanup
-      }
-    );
-  };
-
   const deleteAllWords = async () => {
     if (words.length === 0) {
       setIsDeleteDialogOpen(false);
@@ -187,6 +172,27 @@ const ImportExport = ({
     } finally {
       setIsDeleteDialogOpen(false);
     }
+  };
+  const handleAction = (action: "import" | "export" | "delete") => {
+    if (!isOnline) {
+      action === "import"
+        ? handleImport()
+        : action == "export"
+          ? handleExport()
+          : deleteAllWords();
+      return;
+    }
+    requestAdAction(
+      { type: action },
+      action === "import"
+        ? handleImport
+        : action === "export"
+          ? handleExport
+          : deleteAllWords,
+      () => {
+        // Ad closed without reward - cleanup
+      }
+    );
   };
 
   return (
@@ -238,7 +244,7 @@ const ImportExport = ({
 
           <TouchableOpacity
             onPress={() => setIsDeleteDialogOpen(true)}
-            className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-red-50 dark:bg-backgroundDark"
+            className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-red-50 dark:bg-red-950/20"
           >
             <View>
               <Text className="ml-2 text-lg font-urbanist-semibold text-red-600 dark:text-white">
@@ -267,6 +273,7 @@ const ImportExport = ({
             </Text>
             <View className="flex-row justify-end">
               <TouchableOpacity
+                disabled={isLoadingAd && currentPendingAction === "delete"}
                 className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
                 onPress={() => setIsDeleteDialogOpen(false)}
               >
@@ -275,14 +282,19 @@ const ImportExport = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                disabled={isLoadingAd && currentPendingAction === "delete"}
                 className="px-4 mx-1 py-2 bg-red-600 rounded-md"
                 onPress={() => {
-                  deleteAllWords();
+                  handleAction("delete");
                 }}
               >
-                <Text className="text-white font-urbanist-semibold">
-                  Delete
-                </Text>
+                {isLoadingAd && currentPendingAction === "delete" ? (
+                  <Loader color={"#ffffff"} />
+                ) : (
+                  <Text className="text-white font-urbanist-semibold">
+                    Delete
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

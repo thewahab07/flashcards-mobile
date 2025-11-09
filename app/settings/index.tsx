@@ -14,7 +14,7 @@ import {
 import Constants from "expo-constants";
 import { useWords } from "@/context/globalContext";
 type PendingAction = {
-  type: "theme" | "import" | "export";
+  type: "theme" | "import" | "export" | "delete";
   payload?: any;
 };
 
