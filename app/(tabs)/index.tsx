@@ -318,8 +318,8 @@ export default function Home() {
           </Text>
         </View>
       ) : displayedWords.length == 0 ? (
-        <View className="h-full w-full p-4 flex justify-center items-center mb-16">
-          <Text className="text-2xl text-gray-500 font-urbanist-medium">
+        <View className="h-full w-full p-4 flex justify-center items-center">
+          <Text className="text-2xl text-gray-500 font-urbanist-medium mb-16">
             Zero words. Try a different vibe. 🤷‍♂️
           </Text>
         </View>

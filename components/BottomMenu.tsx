@@ -55,7 +55,7 @@ export default function BottomMenu() {
       <BottomSheetBackdrop
         {...props}
         disappearsOnIndex={-1}
-        appearsOnIndex={0}
+        appearsOnIndex={1}
         opacity={0.5}
       />
     ),
@@ -124,7 +124,10 @@ export default function BottomMenu() {
       .split(",")
       .map((tag) => tag.trim())
       .filter((tag) => tag !== "");
-    if (newDefinition.trim() === "") {
+    if (newWord.trim() === "") {
+      ToastAndroid.show("Please add a word.", ToastAndroid.SHORT);
+      return;
+    } else if (newDefinition.trim() === "") {
       ToastAndroid.show("Please add a definition.", ToastAndroid.SHORT);
       return;
     }
@@ -179,64 +182,6 @@ export default function BottomMenu() {
   };
   return (
     <>
-      <SafeAreaView>
-        <View className="flex-row justify-between dark:bg-backgroundDark dark:text-white bg-background text-black border-t border-borderColor dark:border-borderDark absolute bottom-0 w-full py-2">
-          <View className="justify-center items-center ml-4">
-            <TouchableOpacity
-              onPress={() => {
-                router.push("/");
-              }}
-              className="px-2 py-3 justify-center items-center flex-row"
-            >
-              <HomeIcon
-                size={28}
-                color={
-                  activeWho === 0 ? "#7c4dff" : isDarkMode ? "white" : "black"
-                }
-              />
-              {activeWho === 0 ? (
-                <Text className="text-lg text-primary ml-1 font-urbanist-bold">
-                  Home
-                </Text>
-              ) : (
-                <Text></Text>
-              )}
-            </TouchableOpacity>
-          </View>
-          <View className="absolute w-full m-0 left-0">
-            <View className="justify-center items-center rounded-full -mt-8">
-              <TouchableOpacity
-                onPress={handleOpenBottomSheet}
-                className="justify-center items-center p-4 rounded-full bg-primary"
-              >
-                <Plus size={28} color="white" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View className="justify-center items-center mr-4">
-            <TouchableOpacity
-              onPress={() => {
-                router.push("./settings");
-              }}
-              className="px-2 py-3 justify-center items-center flex-row"
-            >
-              <Settings
-                size={28}
-                color={
-                  activeWho === 1 ? "#7c4dff" : isDarkMode ? "white" : "black"
-                }
-              />
-              {activeWho === 1 ? (
-                <Text className="text-xl text-primary ml-1 font-urbanist-bold">
-                  Settings
-                </Text>
-              ) : (
-                <Text></Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
@@ -302,7 +247,9 @@ export default function BottomMenu() {
             className="bg-primary p-3 rounded-lg items-center mb-2"
             onPress={handleAddWord}
           >
-            <Text className="text-white font-urbanist-semibold">Add Card</Text>
+            <Text className="text-white font-urbanist-semibold px-4 tracking-wide">
+              Add Card
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -315,6 +262,64 @@ export default function BottomMenu() {
           </TouchableOpacity>
         </BottomSheetView>
       </BottomSheet>
+      <SafeAreaView>
+        <View className="flex-row justify-between dark:bg-backgroundDark dark:text-white bg-background text-black border-t border-borderColor dark:border-borderDark absolute bottom-0 w-full py-2">
+          <View className="justify-center items-center ml-4">
+            <TouchableOpacity
+              onPress={() => {
+                router.push("/");
+              }}
+              className="px-2 py-3 justify-center items-center flex-row"
+            >
+              <HomeIcon
+                size={28}
+                color={
+                  activeWho === 0 ? "#7c4dff" : isDarkMode ? "white" : "black"
+                }
+              />
+              {activeWho === 0 ? (
+                <Text className="text-lg text-primary ml-1 font-urbanist-bold">
+                  Home
+                </Text>
+              ) : (
+                <Text></Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          <View className="absolute w-full m-0 left-0">
+            <View className="justify-center items-center rounded-full -mt-8">
+              <TouchableOpacity
+                onPress={handleOpenBottomSheet}
+                className="justify-center items-center p-4 rounded-full bg-primary"
+              >
+                <Plus size={28} color="white" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View className="justify-center items-center mr-4">
+            <TouchableOpacity
+              onPress={() => {
+                router.push("./settings");
+              }}
+              className="px-2 py-3 justify-center items-center flex-row"
+            >
+              <Settings
+                size={28}
+                color={
+                  activeWho === 1 ? "#7c4dff" : isDarkMode ? "white" : "black"
+                }
+              />
+              {activeWho === 1 ? (
+                <Text className="text-xl text-primary ml-1 font-urbanist-bold">
+                  Settings
+                </Text>
+              ) : (
+                <Text></Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     </>
   );
 }

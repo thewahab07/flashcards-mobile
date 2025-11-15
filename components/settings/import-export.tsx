@@ -273,7 +273,6 @@ const ImportExport = ({
             </Text>
             <View className="flex-row justify-end">
               <TouchableOpacity
-                disabled={isLoadingAd && currentPendingAction === "delete"}
                 className="px-4 mx-1 py-2 border border-borderColor dark:border-borderDark rounded-md dark:bg-backgroundDark"
                 onPress={() => setIsDeleteDialogOpen(false)}
               >

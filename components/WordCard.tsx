@@ -1,6 +1,6 @@
 import { Text, ToastAndroid, TouchableOpacity, View } from "react-native";
 import DeleteButton from "./DeleteButton";
-import { Bookmark } from "lucide-react-native";
+import { Bookmark, CircleQuestionMark } from "lucide-react-native";
 import { useWords } from "@/context/globalContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WordItem } from "@/types";
@@ -30,6 +30,7 @@ export default function WordCard({
   currentIndex,
   item,
 }: Props) {
+  const [showInfo, setShowInfo] = useState(false);
   const { words, setWords, setDisplayedWords, isOnline } = useWords();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const translateX = useSharedValue(0);
@@ -68,7 +69,10 @@ export default function WordCard({
   const rStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
-
+  const handleEndInfoPress = () => {
+    setShowInfo(true);
+    setTimeout(() => setShowInfo(false), 3000); // hide after 3s
+  };
   return (
     <View
       key={id}
@@ -94,14 +98,33 @@ export default function WordCard({
               rStyle,
             ]}
           >
+            {currentIndex == 0 && (
+              <TouchableOpacity
+                className="absolute m-4 z-10"
+                onPress={handleEndInfoPress}
+              >
+                <CircleQuestionMark color={"#9ca3af"} size={18} />
+              </TouchableOpacity>
+            )}
+            {showInfo && (
+              <View className="w-full p-4 z-10 rounded-t-3xl absolute dark:bg-slate-800 bg-slate-100">
+                <Text className="text-sm font-urbanist-semibold text-black dark:text-white">
+                  Swipe right to bookmark, left to delete.
+                </Text>
+              </View>
+            )}
             <TouchableOpacity
               activeOpacity={1}
-              className="w-full h-[85%] items-center justify-center rounded-3xl overflow-hidden"
+              className="w-full h-[85%] items-center justify-center rounded-3xl overflow-hidden p-6"
               onPress={() => toggleDefinition(id)}
             >
               {visibleDefinitions[id] ? (
                 <View className="items-center justify-center w-full">
-                  <Text className="text-3xl font-urbanist-regular text-gray-500 px-4">
+                  <Text
+                    numberOfLines={10}
+                    adjustsFontSizeToFit={true}
+                    className="text-3xl font-urbanist-regular text-gray-500"
+                  >
                     {item.definition}
                   </Text>
                   <View className="flex-row justify-center items-center">
@@ -119,10 +142,9 @@ export default function WordCard({
                 </View>
               ) : (
                 <Text
-                  numberOfLines={1}
+                  numberOfLines={2}
                   adjustsFontSizeToFit={true}
-                  minimumFontScale={0.5}
-                  className="text-5xl font-urbanist-bold text-primary leading-normal "
+                  className="text-5xl font-urbanist-bold text-primary leading-tight"
                 >
                   {item.word}
                 </Text>

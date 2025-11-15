@@ -39,8 +39,6 @@ Here are some examples of how you are supposed to answer: ${allWordsString}`;
 
     // Extract clean text response
     const result = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    console.log(response);
-
     return result;
   } catch (error: any) {
     console.error("Gemini API error:", error.response?.data || error.message);

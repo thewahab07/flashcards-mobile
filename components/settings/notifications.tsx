@@ -7,6 +7,7 @@ import {
   CircleQuestionMark,
   ClockArrowDown,
   ClockArrowUp,
+  Info,
 } from "lucide-react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { useWords } from "../../context/globalContext";
@@ -213,10 +214,7 @@ const Notifications = () => {
           </TouchableOpacity>
         </View>
         <View className="w-full shadow-none flex-row items-center justify-between py-5 px-4">
-          <CircleQuestionMark
-            color={isDarkMode ? "white" : "black"}
-            size={20}
-          />
+          <Info color={isDarkMode ? "white" : "black"} size={20} />
           <Text className="text-base font-urbanist-semibold text-black dark:text-white ml-2">
             To maintain active notifications, please open the app at least once
             every 48 hours.

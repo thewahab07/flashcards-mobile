@@ -34,34 +34,6 @@ const About = () => {
         </Text>
       </View>
       <View className="w-full items-center py-4">
-        <View className="w-full flex-row items-center my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark">
-          <Info color={isDarkMode ? "white" : "black"} />
-          <View>
-            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-              App Version
-            </Text>
-            <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
-              1.2.0
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          onPress={handlePolicy}
-          className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
-        >
-          <View className="flex-row items-center">
-            <ClipboardList color={isDarkMode ? "white" : "black"} />
-            <View>
-              <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
-                Terms & Privacy Policy
-              </Text>
-              <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
-                Read our privacy policy.
-              </Text>
-            </View>
-          </View>
-          <ChevronRight color={isDarkMode ? "white" : "black"} />
-        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleRating}
           className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
@@ -79,6 +51,34 @@ const About = () => {
           </View>
           <ChevronRight color={isDarkMode ? "white" : "black"} />
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handlePolicy}
+          className="w-full flex-row items-center justify-between my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark"
+        >
+          <View className="flex-row items-center">
+            <ClipboardList color={isDarkMode ? "white" : "black"} />
+            <View>
+              <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
+                Terms & Privacy Policy
+              </Text>
+              <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
+                Read our privacy policy.
+              </Text>
+            </View>
+          </View>
+          <ChevronRight color={isDarkMode ? "white" : "black"} />
+        </TouchableOpacity>
+        <View className="w-full flex-row items-center my-2 py-5 px-4 rounded-xl bg-background dark:bg-backgroundDark">
+          <Info color={isDarkMode ? "white" : "black"} />
+          <View>
+            <Text className="ml-2 text-lg font-urbanist-semibold text-black dark:text-white">
+              App Version
+            </Text>
+            <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
+              1.2.2
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   );
