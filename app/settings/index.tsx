@@ -11,20 +11,17 @@ import {
   AdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
-import Constants from "expo-constants";
 import { useWords } from "@/context/globalContext";
+import { log } from "@/utils/logger";
+import admob from "../../admob.json";
 type PendingAction = {
-  type: "theme" | "import" | "export" | "delete";
+  type: "theme" | "import" | "export" | "delete" | "notification";
   payload?: any;
 };
 
 export default function SettingsScreen() {
   const { isOnline } = useWords();
-  const rewardedInterstitialId =
-    Constants.expoConfig?.extra?.admobRewardedInterstitialId;
-  const adUnitId = __DEV__
-    ? TestIds.REWARDED_INTERSTITIAL
-    : rewardedInterstitialId;
+  const adUnitId = __DEV__ ? TestIds.REWARDED_INTERSTITIAL : admob.rewarded;
   const adRef = useRef<RewardedInterstitialAd | null>(null);
   const [loadingAd, setLoadingAd] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -59,6 +56,12 @@ export default function SettingsScreen() {
         rewardEarned = true;
       }
     );
+    const unsubscribeErrorEvent = rewardedInterstitial.addAdEventListener(
+      AdEventType.ERROR,
+      (e) => {
+        log("error", e.message + adUnitId);
+      }
+    );
     const unsubscribeClosed = rewardedInterstitial.addAdEventListener(
       AdEventType.CLOSED,
       () => {
@@ -77,6 +80,7 @@ export default function SettingsScreen() {
       unsubscribeLoaded();
       unsubscribeEarned();
       unsubscribeClosed();
+      unsubscribeErrorEvent();
     };
   }, [isOnline]);
   const requestAdAction = useCallback(
@@ -102,7 +106,10 @@ export default function SettingsScreen() {
       className="w-full h-full px-6"
     >
       <View className="w-full items-center my-4">
-        <Notifications />
+        <Notifications
+          requestAdAction={requestAdAction}
+          isLoadingAd={loadingAd && pendingAction?.type === "notification"}
+        />
         <Theme
           requestAdAction={requestAdAction}
           isLoadingAd={loadingAd && pendingAction?.type === "theme"}
@@ -114,7 +121,10 @@ export default function SettingsScreen() {
           requestAdAction={requestAdAction}
           isLoadingAd={loadingAd && pendingAction?.type !== "theme"}
           currentPendingAction={
-            pendingAction?.type !== "theme" ? pendingAction?.type : null
+            pendingAction?.type !== "theme" &&
+            pendingAction?.type !== "notification"
+              ? pendingAction?.type
+              : null
           }
         />
         <About />

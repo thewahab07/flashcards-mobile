@@ -28,7 +28,6 @@ import {
   AdEventType,
   TestIds,
 } from "react-native-google-mobile-ads";
-import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -36,8 +35,15 @@ import BottomSheet, {
   BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
 import { generateDefinition } from "@/utils/gemini";
+import { log } from "@/utils/logger";
+import admob from "../admob.json";
+import BannerAdComp from "./BannerAdComp";
+type props = {
+  bannerFailed: boolean;
+  setBannerFailed: (v: boolean) => void;
+};
 
-export default function BottomMenu() {
+export default function BottomMenu({ bannerFailed, setBannerFailed }: props) {
   const { colorScheme } = useTheme();
   const isDarkMode = colorScheme === "dark";
   const { activeWho, words, setWords, setDisplayedWords } = useWords();
@@ -61,9 +67,7 @@ export default function BottomMenu() {
     ),
     []
   );
-
-  const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : admob.interstitial;
   //const adUnitId = TestIds.INTERSTITIAL;
   const adRef = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
@@ -77,13 +81,34 @@ export default function BottomMenu() {
       setAdLoaded(false);
       adRef.load(); // preload next
     });
+    const unsubscribeErrorEvent = adRef.addAdEventListener(
+      AdEventType.ERROR,
+      (e) => {
+        log("error", e.message + adUnitId);
+      }
+    );
 
     adRef.load();
 
     return () => {
       loadListener();
       closeListener();
+      unsubscribeErrorEvent();
     };
+  }, []);
+
+  useEffect(() => {
+    const loadCount = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("wordAddCount");
+        if (saved !== null) {
+          setWordAddCount(Number(saved));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadCount();
   }, []);
 
   const addWord = (
@@ -110,13 +135,16 @@ export default function BottomMenu() {
         "Another word enters the Hall of Knowledge! 🏛️",
         ToastAndroid.SHORT
       );
-      setWordAddCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount % 3 === 0 && adLoaded) {
-          adRef.show();
-        }
-        return newCount;
-      });
+      const newCount = wordAddCount + 1;
+
+      // update state immediately
+      setWordAddCount(newCount);
+      AsyncStorage.setItem("wordAddCount", String(newCount));
+      if (newCount >= 3 && adLoaded) {
+        adRef.show();
+        setWordAddCount(0);
+        AsyncStorage.setItem("wordAddCount", "0");
+      }
     }
   };
   const handleAddWord = () => {
@@ -260,6 +288,11 @@ export default function BottomMenu() {
               Cancel
             </Text>
           </TouchableOpacity>
+          {!bannerFailed ? (
+            <View className="mt-4">
+              <BannerAdComp onFail={() => setBannerFailed(true)} />
+            </View>
+          ) : null}
         </BottomSheetView>
       </BottomSheet>
       <SafeAreaView>

@@ -14,8 +14,10 @@ import {
 } from "react-native-google-mobile-ads";
 import Constants from "expo-constants";
 import NetInfo from "@react-native-community/netinfo";
-import { createClient } from "@supabase/supabase-js";
 import * as Device from "expo-device";
+import { log } from "@/utils/logger";
+import admob from "../../admob.json";
+import { supabase } from "@/utils/supabase";
 const { height } = Dimensions.get("window");
 
 Notifications.setNotificationHandler({
@@ -37,7 +39,7 @@ export default function Home() {
     Urbanist_600SemiBold: require("../../assets/fonts/Urbanist-SemiBold.ttf"),
     Urbanist_800ExtraBold: require("../../assets/fonts/Urbanist-ExtraBold.ttf"),
     Urbanist_900Black: require("../../assets/fonts/Urbanist-Black.ttf"),
-    Sevillana_400Regular: require("../../assets/fonts/Sevillana-Regular.ttf"),
+    HanaleiFill_Regular: require("../../assets/fonts/HanaleiFill-Regular.ttf"),
   });
   const { words, displayedWords, startTime, endTime, interval, setIsOnline } =
     useWords();
@@ -49,11 +51,7 @@ export default function Home() {
   }>({});
   const scrollViewRef = useRef<FlatList>(null);
   const didScroll = useRef(false);
-  const interstitialId = Constants.expoConfig?.extra?.admobInterstitialId;
-  const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl;
-  const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey;
-  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : interstitialId;
-  //const adUnitId = TestIds.INTERSTITIAL;
+  const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : admob.interstitial;
   const ad = useRef(InterstitialAd.createForAdRequest(adUnitId)).current;
   const [adLoaded, setAdLoaded] = useState(false);
 
@@ -110,19 +108,6 @@ export default function Home() {
     }
   }, [displayedWords]); // Include displayedWords as dependency
 
-  let supabase: ReturnType<typeof createClient> | null = null;
-  if (supabaseUrl && supabaseAnonKey) {
-    try {
-      supabase = createClient(supabaseUrl, supabaseAnonKey);
-    } catch (err) {
-      //console.error("Failed to create Supabase client:", err);
-      supabase = null;
-    }
-  } else {
-    //console.warn(
-    // "Supabase config missing! supabaseUrl or supabaseAnonKey is undefined in Constants.expoConfig.extra"
-    //);
-  }
   async function registerForPushNotificationsAsync() {
     try {
       const { status: existingStatus } =
@@ -254,12 +239,19 @@ export default function Home() {
       setAdLoaded(false);
       ad.load(); // Preload next ad
     });
+    const unsubscribeErrorEvent = ad.addAdEventListener(
+      AdEventType.ERROR,
+      (e) => {
+        log("error", e.message + adUnitId);
+      }
+    );
 
     ad.load(); // Initial load
 
     return () => {
       unsubscribe();
       unsubscribeClose();
+      unsubscribeErrorEvent();
     };
   }, []);
 
@@ -343,7 +335,7 @@ export default function Home() {
             const index = Math.round(offsetY / height);
 
             const isForward = index > previousIndexRef.current;
-            const isMilestone = index !== 0 && index % 15 === 0;
+            const isMilestone = index !== 0 && index % 10 === 0;
             const hasSeenAd = shownAdIndexes.current.has(index);
 
             if (isForward && isMilestone && !hasSeenAd && adLoaded) {

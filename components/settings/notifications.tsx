@@ -8,12 +8,21 @@ import {
   ClockArrowDown,
   ClockArrowUp,
   Info,
+  Loader,
 } from "lucide-react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { useWords } from "../../context/globalContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+type ThemeProps = {
+  requestAdAction: (
+    action: { type: "notification"; payload: any },
+    onReward: () => void,
+    onClose?: () => void
+  ) => void;
+  isLoadingAd: boolean;
+};
 
-const Notifications = () => {
+const Notifications = ({ requestAdAction, isLoadingAd }: ThemeProps) => {
   const { colorScheme } = useTheme();
   const {
     startTime,
@@ -41,14 +50,6 @@ const Notifications = () => {
   }, []);
 
   const applyChanges = async () => {
-    let breakInterval = Number(tempBreak);
-    if (breakInterval < 10) {
-      ToastAndroid.show(
-        "Interval must be at least 10 minutes.",
-        ToastAndroid.SHORT
-      );
-      return; // stop here — don't save anything
-    }
     await AsyncStorage.setItem("startTime", tempStart);
     await AsyncStorage.setItem("endTime", tempEnd);
     await AsyncStorage.setItem("interval", tempBreak);
@@ -60,6 +61,46 @@ const Notifications = () => {
     setTempBreak("");
 
     ToastAndroid.show("Settings applied.", ToastAndroid.SHORT);
+  };
+
+  const handleApply = () => {
+    if (
+      Number(tempStart || startTime) == startTime &&
+      Number(tempEnd || endTime) == endTime &&
+      Number(tempBreak || interval) == interval
+    ) {
+      ToastAndroid.show("No changes to apply.", ToastAndroid.SHORT);
+      return;
+    }
+    if (Number(tempStart) > 24 || Number(tempEnd) > 24) {
+      ToastAndroid.show("Hours can't be greater than 24.", ToastAndroid.SHORT);
+      return;
+    }
+    let breakInterval = Number(tempBreak);
+    if (breakInterval < 10) {
+      ToastAndroid.show(
+        "Interval must be at least 10 minutes.",
+        ToastAndroid.SHORT
+      );
+      return; // stop here — don't save anything
+    }
+    if (Number(tempEnd || endTime) < Number(tempStart || startTime)) {
+      ToastAndroid.show(
+        "Ending hour must be greater than starting hour.",
+        ToastAndroid.SHORT
+      );
+      return;
+    }
+
+    requestAdAction(
+      { type: "notification", payload: "" },
+      () => {
+        applyChanges();
+      },
+      () => {
+        // Ad closed without reward - cleanup
+      }
+    );
   };
 
   const handleStartInfoPress = () => {
@@ -207,15 +248,19 @@ const Notifications = () => {
         </View>
         <View className="w-full px-4">
           <TouchableOpacity
-            onPress={applyChanges}
+            onPress={handleApply}
             className="py-3 w-full items-center justify-center bg-primary rounded-md"
           >
-            <Text className="text-white font-urbanist-semibold">Apply</Text>
+            {isLoadingAd ? (
+              <Loader color="white" />
+            ) : (
+              <Text className="text-white font-urbanist-semibold">Apply</Text>
+            )}
           </TouchableOpacity>
         </View>
         <View className="w-full shadow-none flex-row items-center justify-between py-5 px-4">
           <Info color={isDarkMode ? "white" : "black"} size={20} />
-          <Text className="text-base font-urbanist-semibold text-black dark:text-white ml-2">
+          <Text className="text-base font-urbanist-medium text-black dark:text-white ml-2">
             To maintain active notifications, please open the app at least once
             every 48 hours.
           </Text>

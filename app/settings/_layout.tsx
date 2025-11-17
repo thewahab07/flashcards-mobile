@@ -20,7 +20,7 @@ export default function SettingsLayout() {
           </Text>
         </View>
         <View className="px-6">
-          <Text className="text-3xl text-primary font-sevillana-regular">
+          <Text className="text-3xl text-primary font-hanaleiFill-regular">
             Flash
           </Text>
         </View>

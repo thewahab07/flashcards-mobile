@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from "../context/themeContext";
 import BannerAdComp from "@/components/BannerAdComp";
 import mobileAds from "react-native-google-mobile-ads";
 import { StatusBar } from "react-native";
+import { log } from "@/utils/logger";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -19,6 +20,7 @@ SplashScreen.preventAutoHideAsync();
 function LayoutContent() {
   const { colorScheme } = useTheme();
   const [adsReady, setAdsReady] = useState(false);
+  const [bannerFailed, setBannerFailed] = useState(false);
 
   useEffect(() => {
     mobileAds()
@@ -29,6 +31,7 @@ function LayoutContent() {
       })
       .catch((err) => {
         //console.error("Did not initialize.", err);
+        log("error", "admob initialization error" + err.message);
       });
   }, []);
 
@@ -37,7 +40,10 @@ function LayoutContent() {
       <SafeAreaView
         className={`flex-1 ${colorScheme == "light" ? "bg-background" : "bg-backgroundDark"}`}
       >
-        {adsReady ? <BannerAdComp /> : null}
+        {adsReady && !bannerFailed ? (
+          <BannerAdComp onFail={() => setBannerFailed(true)} />
+        ) : null}
+
         <Stack screenOptions={{ headerShown: false }} />
 
         <StatusBar
@@ -46,7 +52,10 @@ function LayoutContent() {
           barStyle="light-content"
         />
 
-        <BottomMenu />
+        <BottomMenu
+          bannerFailed={bannerFailed}
+          setBannerFailed={setBannerFailed}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

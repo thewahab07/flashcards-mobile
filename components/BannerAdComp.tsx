@@ -1,25 +1,34 @@
 import { useWords } from "@/context/globalContext";
 import { useRef } from "react";
-import Constants from "expo-constants";
 import {
   BannerAd,
   BannerAdSize,
   TestIds,
 } from "react-native-google-mobile-ads";
-export default function BannerAdComp() {
+import admob from "../admob.json";
+import { View } from "react-native";
+type BannerAdCompProps = {
+  onFail: () => void;
+};
+export default function BannerAdComp({ onFail }: BannerAdCompProps) {
   const { isOnline } = useWords();
-  const bannerId = Constants.expoConfig?.extra?.admobBannerId;
   const bannerRef = useRef<BannerAd>(null);
-  const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : bannerId;
+  const adUnitId = __DEV__ ? TestIds.ADAPTIVE_BANNER : admob.banner;
+
   //const adUnitId = TestIds.ADAPTIVE_BANNER;
   return (
     <>
       {isOnline ? (
-        <BannerAd
-          ref={bannerRef}
-          unitId={adUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        />
+        <View className="w-full h-[50px] justify-center items-center">
+          <BannerAd
+            ref={bannerRef}
+            unitId={adUnitId}
+            size={BannerAdSize.BANNER}
+            onAdFailedToLoad={(e) => {
+              onFail();
+            }}
+          />
+        </View>
       ) : (
         <></>
       )}

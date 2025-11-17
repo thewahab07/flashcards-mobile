@@ -21,7 +21,7 @@ module.exports = {
         "urbanist-bold": ["Urbanist_700Bold"],
         "urbanist-extrabold": ["Urbanist_800ExtraBold"],
         "urbanist-black": ["Urbanist_900Black"],
-        "sevillana-regular": ["Sevillana_400Regular"],
+        "hanaleiFill-regular": ["HanaleiFill_Regular"],
       },
     },
   },
