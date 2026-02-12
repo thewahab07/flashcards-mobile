@@ -144,7 +144,7 @@ export default function WordCard({
                 <Text
                   numberOfLines={2}
                   adjustsFontSizeToFit={true}
-                  className="text-5xl font-urbanist-bold text-primary leading-tight"
+                  className="text-5xl text-center font-urbanist-bold text-primary leading-tight"
                 >
                   {item.word}
                 </Text>

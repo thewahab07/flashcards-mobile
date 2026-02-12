@@ -75,7 +75,7 @@ const About = () => {
               App Version
             </Text>
             <Text className="ml-[10px] text-sm font-urbanist-medium text-gray-500">
-              1.2.3
+              1.2.4
             </Text>
           </View>
         </View>

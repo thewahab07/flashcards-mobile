@@ -3,7 +3,7 @@ export default ({ config }) => ({
   ...config,
   name: "Flash",
   slug: "flashcards",
-  version: "1.2.3",
+  version: "1.2.4",
   icon: "./assets/images/icon.png",
   scheme: "myapp",
   userInterfaceStyle: "automatic",
@@ -15,7 +15,7 @@ export default ({ config }) => ({
 
   android: {
     enableEdgeToEdge: true,
-    versionCode: 17,
+    versionCode: 18,
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
